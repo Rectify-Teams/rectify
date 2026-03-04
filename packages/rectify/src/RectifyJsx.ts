@@ -13,8 +13,12 @@ const createElement = (type: any, props?: any): RectifyElement => {
 
 export const jsx: RectifyJsx = createElement;
 
-const App = (props: { a: number; children: RectifyNode }) => {
-  return jsx("div", props);
+const Content = ({}: { count?: number }) => {
+  return jsx("div");
 };
 
-const P = () => jsx(App, { a: 1, children: [jsx("h1")] });
+const App = () => {
+  return jsx("div", {
+    children: jsx(Content, { count: 1 }),
+  });
+};
