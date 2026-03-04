@@ -29,12 +29,35 @@ importers:
 
   packages/rectify:
     devDependencies:
+      '@rectify/dom':
+        specifier: workspace:*
+        version: link:../rectify-dom
+      '@rectify/shared':
+        specifier: workspace:*
+        version: link:../shared
       tsup:
         specifier: ^8.5.1
         version: 8.5.1(postcss@8.5.8)(typescript@5.9.3)
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
+
+  packages/rectify-dom:
+    dependencies:
+      '@rectify/reconciler':
+        specifier: workspace:*
+        version: link:../rectify-reconciler
+      '@rectify/shared':
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/rectify-reconciler:
+    dependencies:
+      '@rectify/shared':
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/shared: {}
 
 packages:
 

@@ -3,17 +3,17 @@
  */
 export type RectifyText = string | number;
 
-export type RectifyFunctionalComponent<P = any> = (props: P) => RectifyNode<P>;
+export type RectifyFunctionalComponent<P = any> = (props: P) => RectifyNode;
 
 export type RectifyTypeJsx<P = any> =
   | string
   | RectifyFunctionalComponent<P>
   | null;
 
-export type RectifyNode<P = any> =
+export type RectifyNode =
   | RectifyText
   | RectifyIgnorable
-  | RectifyElement<P>
+  | RectifyElement
   | Iterable<RectifyNode>;
 
 export type RectifyIgnorable = boolean | null | undefined | void;
@@ -49,3 +49,5 @@ export type RectifyJsx = <P = any>(
   type: RectifyTypeJsx<P>,
   ...props: PropsArg<P>
 ) => RectifyNode;
+
+export type FC<P = any> = RectifyFunctionalComponent<P>;
