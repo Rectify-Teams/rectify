@@ -27,7 +27,25 @@ export type RectifyElement<P = any> = {
 
 export type RectifyKey = string | number | null | undefined;
 
+type HasRequiredKeys<T extends object> = {
+  [K in keyof T]-?: {} extends Pick<T, K> ? never : K;
+}[keyof T] extends never
+  ? false
+  : true;
+
+type PropsArg<P> =
+  // no props at all
+  [P] extends [never]
+    ? [P?]
+    : // object props: optional only if no required keys
+      P extends object
+      ? HasRequiredKeys<P> extends true
+        ? [P]
+        : [P?]
+      : // non-object props: keep required
+        [P];
+
 export type RectifyJsx = <P = any>(
   type: RectifyTypeJsx<P>,
-  props?: P,
+  ...props: PropsArg<P>
 ) => RectifyNode;

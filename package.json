@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "pnpm -r build",
-    "dev": "pnpm -r dev",
+    "dev": "pnpm -r --parallel --stream dev",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
     "changeset": "changeset",

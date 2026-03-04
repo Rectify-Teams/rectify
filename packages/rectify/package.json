@@ -1,8 +1,8 @@
 {
-  "name": "rectify",
+  "name": "@rectify/core",
   "version": "1.0.0",
   "license": "MIT",
-  "main": "./dist/index.cjs",
+  "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
