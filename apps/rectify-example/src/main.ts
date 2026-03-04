@@ -1,7 +1,11 @@
-import A from "@rectify/core";
+import { createRoot, jsx } from "@rectify/core";
 
-// const App = () => {
-//   return jsx("div", {
-//     children: "hello",
-//   });
-// };
+const Container = () => jsx("div", { children: "hello" });
+
+const App = () => {
+  return jsx("div", {
+    children: ["hello1", jsx(Container)],
+  });
+};
+
+createRoot(document.getElementById("app")!).render(jsx(App));

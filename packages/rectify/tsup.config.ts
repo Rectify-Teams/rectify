@@ -5,6 +5,11 @@ export default defineConfig({
 
   format: ["esm", "cjs"],
   target: "ES2020",
+  outExtension({ format }) {
+    return {
+      js: format === "esm" ? ".js" : ".cjs",
+    };
+  },
 
   dts: true,
   sourcemap: true,
