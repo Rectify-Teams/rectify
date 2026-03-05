@@ -1,7 +1,11 @@
 import { createContainer, updateContainer } from "@rectify/reconciler";
 import { RectifyNode } from "@rectify/shared";
 
-export const createRoot = (container: Element) => {
+type RectifyDomRoot = {
+  render: (node: RectifyNode) => void;
+};
+
+export const createRoot = (container: Element): RectifyDomRoot => {
   const hostRoot = createContainer(container);
   return {
     render: (node: RectifyNode) => {
