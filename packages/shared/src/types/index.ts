@@ -9,3 +9,5 @@ export {
   type RectifyText,
   type RectifyTypeJsx,
 } from "./RectifyTypes";
+
+export { type Fiber } from "./RectifyFiber";

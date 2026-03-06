@@ -1,17 +1,19 @@
 import {
+  Fiber,
   isFunction,
   RECTIFY_ELEMENT_TYPE,
   RECTIFY_FRAGMENT_TYPE,
   RECTIFY_TEXT_TYPE,
   RectifyElement,
 } from "@rectify/shared";
-import { Fiber } from "./RectifyFiberTypes";
 import {
   FragmentComponent,
   FunctionComponent,
   HostComponent,
+  HostRoot,
   HostText,
 } from "./RectifyFiberWorkTags";
+import { getScheduledFiberRoot } from "./RectifyFiberInstance";
 
 const addFlagToFiber = (fiber: Fiber, flag: number): void => {
   if (hasFlagOnFiber(fiber, flag)) return;
@@ -41,9 +43,51 @@ const getFiberTagFromElement = (element: RectifyElement) => {
   }
 };
 
+const createDomElementFromFiber = (fiber: Fiber): Node => {
+  switch (fiber.workTag) {
+    case HostText:
+      return document.createTextNode(fiber.pendingProps);
+    default:
+      return document.createElement(fiber.type as string);
+  }
+};
+
+const getParentDom = (fiber: Fiber): Node => {
+  if (fiber.workTag === HostRoot)
+    return getScheduledFiberRoot()?.containerDom as Node;
+
+  let p = fiber.return;
+  while (p) {
+    if (p.workTag === HostComponent) {
+      return p.stateNode as Node;
+    }
+    if (p.workTag === HostRoot)
+      return getScheduledFiberRoot()?.containerDom as Node;
+    p = p.return;
+  }
+
+  throw new Error("No parent DOM found.");
+};
+
+function getHostSibling(fiber: Fiber): Node | null {
+  let sibling = fiber.sibling;
+
+  while (sibling) {
+    if (sibling.workTag === HostComponent || sibling.workTag === HostText) {
+      return sibling.stateNode;
+    }
+    sibling = sibling.sibling;
+  }
+
+  return null;
+}
+
 export {
   addFlagToFiber,
   removeFlagFromFiber,
   hasFlagOnFiber,
   getFiberTagFromElement,
+  createDomElementFromFiber,
+  getParentDom,
+  getHostSibling,
 };

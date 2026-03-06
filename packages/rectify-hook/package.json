@@ -1,11 +1,10 @@
 {
-  "name": "@rectify/reconciler",
+  "name": "@rectify/hook",
   "version": "1.0.0",
   "license": "MIT",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "dependencies": {
-    "@rectify/shared": "workspace:*",
-    "@rectify/hook": "workspace:*"
+    "@rectify/shared": "workspace:*"
   }
 }
