@@ -1,9 +1,10 @@
-import { RectifyNode } from "@rectify/shared";
 import {
+  RectifyNode,
+  createElementFromRectifyNode,
   isFunction,
   isValidRectifyElement,
   toArray,
-} from "@rectify/shared/utilities";
+} from "@rectify/shared";
 import { Fiber, FiberRoot } from "./RectifyFiberTypes";
 import {
   createFiberFromRectifyElement,
@@ -62,7 +63,7 @@ const performUnitOfWork = (wip: Fiber): Fiber | null => {
     }
     case HostRoot:
     case HostComponent: {
-      const nextChildren = wip.pendingProps.children;
+      const nextChildren = wip.pendingProps?.children;
       reconcilerChildren(wip, nextChildren);
       break;
     }
@@ -85,13 +86,12 @@ const reconcilerChildren = (wip: Fiber, children: RectifyNode) => {
   let oldCurrentFiberChild = currentFiberChildHead;
   let prevSibling: Fiber | null = null;
 
-  console.log("children", children);
-
   toArray(children).forEach((child) => {
-    if (!isValidRectifyElement(child)) return;
+    const childElement = createElementFromRectifyNode(child);
+    if (!isValidRectifyElement(childElement)) return;
 
-    const childKey = child.key ?? null;
-    const childType = child.type;
+    const childKey = childElement.key ?? null;
+    const childType = childElement.type;
 
     let newFiber: Fiber;
 
@@ -101,10 +101,13 @@ const reconcilerChildren = (wip: Fiber, children: RectifyNode) => {
       oldCurrentFiberChild.type === childType;
 
     if (isMatched) {
-      newFiber = createWorkInProgress(oldCurrentFiberChild!, child.props);
+      newFiber = createWorkInProgress(
+        oldCurrentFiberChild!,
+        childElement.props,
+      );
       addFlagToFiber(newFiber, UpdateFlag);
     } else {
-      newFiber = createFiberFromRectifyElement(child);
+      newFiber = createFiberFromRectifyElement(childElement);
       addFlagToFiber(newFiber, PlacementFlag);
     }
 

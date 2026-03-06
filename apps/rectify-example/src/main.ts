@@ -4,7 +4,7 @@ const Container = () => jsx("div", { children: "hello" });
 
 const App = () => {
   return jsx("div", {
-    children: ["hello1", jsx(Container)],
+    children: ["hello1", jsx(Container), false],
   });
 };
 

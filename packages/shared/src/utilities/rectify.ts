@@ -1,9 +1,54 @@
-import { RectifyElement } from "../RectifyTypes";
-import { isPlainObject } from "./common";
+import {
+  RECTIFY_ELEMENT_TYPE,
+  RECTIFY_FRAGMENT_TYPE,
+  RECTIFY_TEXT_TYPE,
+} from "../constants";
+import { RectifyElement, RectifyIgnorable, RectifyNode } from "../types";
+import { isBool, isPlainObject, isTextNode } from "./common";
 
 export const isValidRectifyElement = (v: unknown): v is RectifyElement => {
   if (isPlainObject(v)) {
-    return v.hasOwnProperty("$$typeof") && v.hasOwnProperty("type");
+    const elementTypes = [
+      RECTIFY_ELEMENT_TYPE,
+      RECTIFY_FRAGMENT_TYPE,
+      RECTIFY_TEXT_TYPE,
+    ];
+    return (
+      v.hasOwnProperty("$$typeof") &&
+      v.hasOwnProperty("type") &&
+      elementTypes.includes(v.$$typeof)
+    );
   }
   return false;
 };
+
+export const isRectifyIgnorable = (v: unknown): v is RectifyIgnorable =>
+  v === null || v === undefined || isBool(v);
+
+export const createElementFromRectifyNode = (
+  node: RectifyNode,
+): RectifyElement | null => {
+  if (isValidRectifyElement(node)) return node;
+
+  if (isTextNode(node)) {
+    return {
+      $$typeof: RECTIFY_TEXT_TYPE,
+      key: null,
+      type: null,
+      props: node,
+    };
+  }
+
+  if (isRectifyIgnorable(node)) {
+    return {
+      $$typeof: RECTIFY_FRAGMENT_TYPE,
+      key: null,
+      type: null,
+      props: node,
+    };
+  }
+  return null;
+};
+
+export const isElementType = (v: unknown, type: symbol) =>
+  isValidRectifyElement(v) && v.$$typeof === type;
