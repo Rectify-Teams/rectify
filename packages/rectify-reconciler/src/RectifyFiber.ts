@@ -1,8 +1,13 @@
-import { RectifyKey } from "@rectify/shared";
+import { RectifyElement, RectifyKey } from "@rectify/shared";
 import { NoFlags } from "./RectifyFiberFlags";
 import { NoLanes } from "./RectifyFiberLanes";
 import { Fiber } from "./RectifyFiberTypes";
-import { HostRoot } from "./RectifyFiberWorkTags";
+import {
+  FunctionComponent,
+  HostComponent,
+  HostRoot,
+} from "./RectifyFiberWorkTags";
+import { isFunction } from "@rectify/shared/utilities";
 
 export const createFiber = (
   workTag: symbol,
@@ -10,6 +15,7 @@ export const createFiber = (
   key: RectifyKey = null,
 ): Fiber => {
   return {
+    index: 0,
     key,
     workTag,
     flags: NoFlags,
@@ -61,4 +67,13 @@ export const createWorkInProgress = (current: Fiber, pendingProps: any) => {
   wip.sibling = current.sibling;
 
   return wip;
+};
+
+export const createFiberFromRectifyElement = (
+  element: RectifyElement,
+): Fiber => {
+  const type = element.type;
+  const tag = isFunction(type) ? FunctionComponent : HostComponent;
+
+  return createFiber(tag, element.props, element.key);
 };
