@@ -1,8 +1,14 @@
 import { FC, Fiber } from "@rectify/shared";
+import { setFiberRendering, setHookIndex } from "./RectifyHookRenderingFiber";
 
-const prepareToUseHooks = (wip: Fiber) => {};
+const prepareToUseHooks = (wip: Fiber) => {
+  setFiberRendering(wip);
+  setHookIndex(0);
+};
 
-const finishUsingHooks = () => {};
+const finishUsingHooks = () => {
+  setFiberRendering(null);
+};
 
 const withHooks = (wip: Fiber, Component: FC) => {
   const NewComponent = (props: any) => {

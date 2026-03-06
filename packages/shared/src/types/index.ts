@@ -10,4 +10,4 @@ export {
   type RectifyTypeJsx,
 } from "./RectifyTypes";
 
-export { type Fiber } from "./RectifyFiber";
+export { type Fiber, type Hook, type UpdateQueue } from "./RectifyFiber";
