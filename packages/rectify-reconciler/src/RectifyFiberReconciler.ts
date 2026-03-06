@@ -5,22 +5,31 @@ import {
   toArray,
 } from "@rectify/shared/utilities";
 import { Fiber, FiberRoot } from "./RectifyFiberTypes";
-import { createHostRootFiber, createWorkInProgress } from "./RectifyFiber";
-import { setScheduledFiberRoot } from "./RectifyFiberInstantce";
+import {
+  createFiberFromRectifyElement,
+  createHostRootFiber,
+  createWorkInProgress,
+} from "./RectifyFiber";
+import { setScheduledFiberRoot } from "./RectifyFiberInstance";
 import {
   FunctionComponent,
   HostComponent,
   HostRoot,
 } from "./RectifyFiberWorkTags";
+import { addFlagToFiber } from "./RectifyFiberService";
+import { PlacementFlag, UpdateFlag } from "./RectifyFiberFlags";
 
 export const createContainer = (container: Element): FiberRoot => {
   const fiberRoot = createHostRootFiber(container);
   return fiberRoot;
 };
 
-export const updateContainer = (node: RectifyNode, fiberRoot: FiberRoot) => {
+export const updateContainer = (
+  children: RectifyNode,
+  fiberRoot: FiberRoot,
+) => {
   setScheduledFiberRoot(fiberRoot);
-  const wipRoot = createWorkInProgress(fiberRoot.root, node);
+  const wipRoot = createWorkInProgress(fiberRoot.root, { children });
 
   const finished = renderRoot(wipRoot);
   fiberRoot.root = finished;
@@ -76,8 +85,39 @@ const reconcilerChildren = (wip: Fiber, children: RectifyNode) => {
   let oldCurrentFiberChild = currentFiberChildHead;
   let prevSibling: Fiber | null = null;
 
+  console.log("children", children);
+
   toArray(children).forEach((child) => {
     if (!isValidRectifyElement(child)) return;
+
+    const childKey = child.key ?? null;
+    const childType = child.type;
+
+    let newFiber: Fiber;
+
+    const isMatched =
+      oldCurrentFiberChild &&
+      oldCurrentFiberChild.key === childKey &&
+      oldCurrentFiberChild.type === childType;
+
+    if (isMatched) {
+      newFiber = createWorkInProgress(oldCurrentFiberChild!, child.props);
+      addFlagToFiber(newFiber, UpdateFlag);
+    } else {
+      newFiber = createFiberFromRectifyElement(child);
+      addFlagToFiber(newFiber, PlacementFlag);
+    }
+
+    newFiber.return = wip;
+    newFiber.index = index++;
+    newFiber.key = childKey;
+    newFiber.type = childType;
+
+    if (!prevSibling) wip.child = newFiber;
+    else prevSibling.sibling = newFiber;
+
+    prevSibling = newFiber;
+    oldCurrentFiberChild = oldCurrentFiberChild?.sibling;
   });
 };
 

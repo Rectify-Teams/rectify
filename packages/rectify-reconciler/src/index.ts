@@ -1,3 +1,3 @@
-import { updateContainer, createContainer } from "./RectifyFiberRoot";
+import { updateContainer, createContainer } from "./RectifyFiberReconciler";
 
 export { updateContainer, createContainer };

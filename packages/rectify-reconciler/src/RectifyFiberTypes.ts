@@ -13,6 +13,7 @@ export type Fiber = {
   return: Fiber | null;
   stateNode: Node | null;
   deletions: Fiber[] | null;
+  index: number;
 
   lanes: number;
   childLanes: number;
