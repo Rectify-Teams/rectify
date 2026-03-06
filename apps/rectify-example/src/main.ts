@@ -1,10 +1,13 @@
-import { createRoot, jsx } from "@rectify/core";
+import { createRoot, jsx, useState, type FC } from "@rectify/core";
 
-const Container = () => jsx("div", { children: "hello" });
+const Container: FC<{ count: number }> = ({ count }) =>
+  jsx("div", { children: ["hello ", count] });
 
 const App = () => {
+  const [count, setCount] = useState(1);
   return jsx("div", {
-    children: ["hello1", jsx(Container), false],
+    onClick: () => setCount((p) => p + 1),
+    children: ["hello1", jsx(Container, { count }), false],
   });
 };
 

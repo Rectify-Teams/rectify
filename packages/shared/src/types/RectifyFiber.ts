@@ -1,10 +1,20 @@
 import { RectifyKey, RectifyTypeJsx } from "./RectifyTypes";
 
+export type UpdateQueue<S = any> = {
+  action: S | ((prev: S) => S);
+  next: UpdateQueue<S> | null;
+};
+
+export type Hook<S = any> = {
+  memoizedState: S;
+  queue: UpdateQueue<S> | null;
+  next: Hook | null;
+};
+
 export type Fiber = {
   alternate: Fiber | null;
   key: RectifyKey;
   workTag: symbol;
-  flags: number;
   type: RectifyTypeJsx;
   pendingProps: any;
   memoizedProps: any;
@@ -17,4 +27,9 @@ export type Fiber = {
 
   lanes: number;
   childLanes: number;
+
+  flags: number;
+  subtreeFlags: number;
+
+  memoizedState: Hook | null;
 };

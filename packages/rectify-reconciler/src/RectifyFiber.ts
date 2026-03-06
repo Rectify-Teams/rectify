@@ -13,7 +13,6 @@ export const createFiber = (
     index: 0,
     key,
     workTag,
-    flags: NoFlags,
     type: null,
     pendingProps,
     memoizedProps: null,
@@ -26,6 +25,11 @@ export const createFiber = (
 
     lanes: NoLanes,
     childLanes: NoLanes,
+
+    subtreeFlags: NoFlags,
+    flags: NoFlags,
+
+    memoizedState: null,
   };
 };
 
