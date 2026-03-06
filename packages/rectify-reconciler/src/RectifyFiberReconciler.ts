@@ -1,11 +1,12 @@
 import {
+  Fiber,
   RectifyNode,
   createElementFromRectifyNode,
   isFunction,
   isValidRectifyElement,
   toArray,
 } from "@rectify/shared";
-import { Fiber, FiberRoot } from "./RectifyFiberTypes";
+import { FiberRoot } from "./RectifyFiberTypes";
 import {
   createFiberFromRectifyElement,
   createHostRootFiber,
@@ -16,9 +17,18 @@ import {
   FunctionComponent,
   HostComponent,
   HostRoot,
+  HostText,
 } from "./RectifyFiberWorkTags";
-import { addFlagToFiber } from "./RectifyFiberService";
+import {
+  addFlagToFiber,
+  createDomElementFromFiber,
+  getHostSibling,
+  getParentDom,
+  hasFlagOnFiber,
+  removeFlagFromFiber,
+} from "./RectifyFiberService";
 import { PlacementFlag, UpdateFlag } from "./RectifyFiberFlags";
+import { withHooks } from "@rectify/hook";
 
 export const createContainer = (container: Element): FiberRoot => {
   const fiberRoot = createHostRootFiber(container);
@@ -57,7 +67,8 @@ const performUnitOfWork = (wip: Fiber): Fiber | null => {
     case FunctionComponent: {
       const Component = wip.type;
       if (!isFunction(Component)) break;
-      const nextChildren = Component(wip.pendingProps);
+      const ComponentWithHooks = withHooks(wip, Component);
+      const nextChildren = ComponentWithHooks(wip.pendingProps);
       reconcilerChildren(wip, nextChildren);
       break;
     }
@@ -124,4 +135,72 @@ const reconcilerChildren = (wip: Fiber, children: RectifyNode) => {
   });
 };
 
-const commitWork = (finishedWork: Fiber) => {};
+const commitWork = (finishedWork: Fiber) => {
+  commitMutation(finishedWork);
+
+  let child = finishedWork.child;
+  while (child) {
+    commitWork(child);
+    child = child.sibling;
+  }
+};
+
+const commitMutation = (childFiber: Fiber) => {
+  switch (childFiber.workTag) {
+    case HostComponent:
+      commitMutationHostComponent(childFiber);
+      break;
+    case HostText:
+      commitMutationHostText(childFiber);
+      break;
+  }
+};
+
+const commitMutationHostComponent = (wip: Fiber) => {
+  if (!wip.stateNode) {
+    const dom = createDomElementFromFiber(wip);
+    wip.stateNode = dom;
+  }
+
+  if (hasFlagOnFiber(wip, PlacementFlag)) {
+    const parentDom = getParentDom(wip);
+    const sibling = getHostSibling(wip);
+
+    if (sibling) {
+      parentDom.insertBefore(wip.stateNode, sibling);
+    } else {
+      parentDom.appendChild(wip.stateNode);
+    }
+    removeFlagFromFiber(wip, PlacementFlag);
+  }
+
+  if (hasFlagOnFiber(wip, UpdateFlag)) {
+    removeFlagFromFiber(wip, UpdateFlag);
+  }
+};
+
+const commitMutationHostText = (wip: Fiber) => {
+  if (!wip.stateNode) {
+    const textNode = document.createTextNode(String(wip.pendingProps));
+    wip.stateNode = textNode;
+  }
+
+  if (hasFlagOnFiber(wip, PlacementFlag)) {
+    const sibling = getHostSibling(wip);
+    const parentDom = getParentDom(wip);
+
+    if (sibling) {
+      parentDom.insertBefore(wip.stateNode, sibling);
+    } else {
+      parentDom.appendChild(wip.stateNode);
+    }
+    removeFlagFromFiber(wip, PlacementFlag);
+  }
+
+  if (hasFlagOnFiber(wip, UpdateFlag)) {
+    if (wip.memoizedProps !== wip.pendingProps) {
+      (wip.stateNode as Text).nodeValue = String(wip.pendingProps);
+    }
+    removeFlagFromFiber(wip, UpdateFlag);
+  }
+};
