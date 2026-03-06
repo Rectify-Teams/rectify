@@ -12,4 +12,8 @@ export {
   toArray,
 } from "./common";
 
-export { isValidRectifyElement } from "./rectify";
+export {
+  isValidRectifyElement,
+  createElementFromRectifyNode,
+  isRectifyIgnorable,
+} from "./rectify";

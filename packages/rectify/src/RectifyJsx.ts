@@ -1,5 +1,8 @@
-import { RECTIFY_ELEMENT_TYPE } from "./RectifyConstants";
-import { RectifyElement, RectifyJsx } from "@rectify/shared";
+import {
+  RECTIFY_ELEMENT_TYPE,
+  RectifyElement,
+  RectifyJsx,
+} from "@rectify/shared";
 
 const createElement = (type: any, props?: any): RectifyElement => {
   const key = props?.key;
