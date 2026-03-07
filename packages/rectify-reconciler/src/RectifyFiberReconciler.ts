@@ -29,6 +29,7 @@ import {
 } from "./RectifyFiberService";
 import { PlacementFlag, UpdateFlag } from "./RectifyFiberFlags";
 import { withHooks } from "@rectify/hook";
+import { markContainerAsRoot, precacheFiberNode } from "@rectify/dom-binding";
 
 export const createContainer = (container: Element): FiberRoot => {
   const fiberRoot = createHostRootFiber(container);
@@ -44,6 +45,7 @@ export const updateContainer = (
 
   const finished = renderRoot(wipRoot);
   fiberRoot.root = finished;
+  markContainerAsRoot(finished, fiberRoot.containerDom);
   setScheduledFiberRoot(fiberRoot);
 };
 
@@ -171,10 +173,12 @@ const commitMutationHostComponent = (wip: Fiber) => {
     } else {
       parentDom.appendChild(wip.stateNode);
     }
+    precacheFiberNode(wip, wip.stateNode);
     removeFlagFromFiber(wip, PlacementFlag);
   }
 
   if (hasFlagOnFiber(wip, UpdateFlag)) {
+    precacheFiberNode(wip, wip.stateNode);
     removeFlagFromFiber(wip, UpdateFlag);
   }
 };
@@ -194,6 +198,7 @@ const commitMutationHostText = (wip: Fiber) => {
     } else {
       parentDom.appendChild(wip.stateNode);
     }
+    precacheFiberNode(wip, wip.stateNode);
     removeFlagFromFiber(wip, PlacementFlag);
   }
 
@@ -201,6 +206,7 @@ const commitMutationHostText = (wip: Fiber) => {
     if (wip.memoizedProps !== wip.pendingProps) {
       (wip.stateNode as Text).nodeValue = String(wip.pendingProps);
     }
+    precacheFiberNode(wip, wip.stateNode);
     removeFlagFromFiber(wip, UpdateFlag);
   }
 };

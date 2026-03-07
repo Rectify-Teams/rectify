@@ -6,6 +6,7 @@
   "types": "./src/index.ts",
   "dependencies": {
     "@rectify/shared": "workspace:*",
-    "@rectify/hook": "workspace:*"
+    "@rectify/hook": "workspace:*",
+    "@rectify/dom-binding": "workspace:*"
   }
 }
