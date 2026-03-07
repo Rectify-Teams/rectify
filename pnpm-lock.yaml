@@ -47,9 +47,18 @@ importers:
 
   packages/rectify-dom:
     dependencies:
+      '@rectify/dom-binding':
+        specifier: workspace:*
+        version: link:../rectify-dom-binding
       '@rectify/reconciler':
         specifier: workspace:*
         version: link:../rectify-reconciler
+      '@rectify/shared':
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/rectify-dom-binding:
+    dependencies:
       '@rectify/shared':
         specifier: workspace:*
         version: link:../shared
@@ -62,6 +71,9 @@ importers:
 
   packages/rectify-reconciler:
     dependencies:
+      '@rectify/dom-binding':
+        specifier: workspace:*
+        version: link:../rectify-dom-binding
       '@rectify/hook':
         specifier: workspace:*
         version: link:../rectify-hook

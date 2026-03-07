@@ -1,0 +1,1 @@
+export { listenToAllEventSupported } from "./RectifyEvent";
