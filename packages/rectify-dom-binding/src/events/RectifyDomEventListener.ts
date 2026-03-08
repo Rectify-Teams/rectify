@@ -1,5 +1,11 @@
-import { getEventHandlerListeners } from "../clients/RectifyDomComponentTree";
+import { Fiber, isFunction } from "@rectify/shared";
+import {
+  getEventHandlerListeners,
+  getFiberNodeCached,
+} from "../clients/RectifyDomComponentTree";
 import { RectifyDomEventName } from "./RectifyEventName";
+import SyntheticEvent from "./SyntheticEvent";
+import { nativeEventToRectifyName } from "./RectifyEventRegistry";
 
 export type AnyNativeEvent = Event | KeyboardEvent | MouseEvent | TouchEvent;
 
@@ -10,15 +16,49 @@ export const createEventListenerWrapper = (
   return dispatchEvent.bind(null, domEventName, targetContainer);
 };
 
+const getEventTarget = (nativeEvent: AnyNativeEvent) => {
+  return (nativeEvent.target || nativeEvent.srcElement) as Node;
+};
+
 const dispatchEvent = (
   domEventName: RectifyDomEventName,
   targetContainer: EventTarget,
   nativeEvent: AnyNativeEvent,
 ) => {
-  const currentTarget = (nativeEvent.target || nativeEvent.srcElement) as Node;
-  const event = getEventHandlerListeners(currentTarget);
+  const targetNode = getEventTarget(nativeEvent);
+  const targetFiber = getFiberNodeCached(targetNode);
 
-  if (!event) return;
-  const handler = event.get(`on${domEventName}` as RectifyDomEventName);
-  return handler?.call(null, nativeEvent);
+  if (!targetFiber) return;
+
+  const syntheticEvent = new SyntheticEvent(nativeEvent);
+
+  const path: Fiber[] = [];
+  let fiber: Fiber | null = targetFiber;
+
+  while (fiber) {
+    path.push(fiber);
+    if (fiber.stateNode === targetContainer) {
+      break;
+    }
+    fiber = fiber.return;
+  }
+
+  for (const currFiber of path) {
+    if (syntheticEvent.isPropagationStopped()) break;
+
+    const eventHandlerMap = getEventHandlerListeners(
+      currFiber.stateNode as Node,
+    );
+    if (!eventHandlerMap) continue;
+    const rectifyName = nativeEventToRectifyName.get(domEventName);
+    if (!rectifyName) continue;
+    const handler = eventHandlerMap.get(rectifyName);
+
+    if (!isFunction(handler)) continue;
+
+    syntheticEvent.currentTarget = currFiber.stateNode;
+    handler(syntheticEvent);
+  }
+
+  syntheticEvent.currentTarget = null;
 };

@@ -1,4 +1,4 @@
-export { listenToAllEventSupported } from "./events";
+export { listenToAllEventSupported, SyntheticEvent } from "./events";
 export {
   markContainerAsRoot,
   unmarkContainerAsRoot,

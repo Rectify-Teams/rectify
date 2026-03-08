@@ -1,7 +1,4 @@
-import {
-  RectifyDOMEventHandle,
-  RectifyDOMEventHandleListener,
-} from "@rectify/events/RectifyDomEventTypes";
+import { RectifyDOMEventHandleListener } from "@rectify/events/RectifyDomEventTypes";
 import { RectifyDomEventName } from "@rectify/events/RectifyEventName";
 import { Fiber } from "@rectify/shared";
 
@@ -27,29 +24,26 @@ export function isContainerMarkedAsRoot(node: Element | Node): boolean {
 }
 
 export const precacheFiberNode = (fiber: Fiber, node: Node) => {
+  if (!node) return;
   (node as any)[internalInstanceKey] = fiber;
 };
 
+export const getFiberNodeCached = (node: Node): Fiber | null => {
+  if (!node) return null;
+  return (node as any)[internalInstanceKey] || null;
+};
+
 export function setEventHandlerListeners(
-  scope: EventTarget,
-  listeners: Map<RectifyDomEventName, RectifyDOMEventHandleListener>,
+  scope: EventTarget | null,
+  listeners: Map<string, RectifyDOMEventHandleListener>,
 ): void {
+  if (!scope) return;
   (scope as any)[internalEventHandlerListenersKey] = listeners;
 }
 
 export function getEventHandlerListeners(
-  scope: EventTarget,
-): null | Map<RectifyDomEventName, RectifyDOMEventHandleListener> {
+  scope: EventTarget | null,
+): null | Map<string, RectifyDOMEventHandleListener> {
+  if (!scope) return null;
   return (scope as any)[internalEventHandlerListenersKey] || null;
-}
-
-export function addEventHandleToTarget(
-  target: EventTarget,
-  eventHandle: RectifyDOMEventHandle,
-): void {
-  let eventHandles = (target as any)[internalEventHandlesSetKey];
-  if (!eventHandles) {
-    eventHandles = (target as any)[internalEventHandlesSetKey] = new Set();
-  }
-  eventHandles.add(eventHandle);
 }

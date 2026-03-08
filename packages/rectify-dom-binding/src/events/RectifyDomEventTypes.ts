@@ -1,8 +1,3 @@
-import { AnyNativeEvent } from "./RectifyDomEventListener";
+import SyntheticEvent from "./SyntheticEvent";
 
-export type RectifyDOMEventHandle = (
-  target: EventTarget,
-  callback: (e: AnyNativeEvent) => void,
-) => () => void;
-
-export type RectifyDOMEventHandleListener = (e: AnyNativeEvent) => void;
+export type RectifyDOMEventHandleListener = (e: SyntheticEvent) => void;
