@@ -23,8 +23,6 @@ export const applyPropsToDom = (
   prevProps: any = {},
   nextProps: any = {},
 ) => {
-  console.log(">>", { node, nextProps, prevProps });
-
   const element = node as Element;
 
   const eventNode =
@@ -46,7 +44,7 @@ export const applyPropsToDom = (
 
     if (isEvent(k)) {
       if (prevProps?.[k] !== nextProps?.[k]) {
-        eventNode.set(k.toLowerCase() as RectifyDomEventName, nextProps[k]);
+        eventNode.set(k, nextProps[k]);
       }
     } else if (k === "style") {
       element.setAttribute("style", convertStyleObjectToString(nextProps[k]));
