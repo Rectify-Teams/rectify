@@ -3,4 +3,5 @@ export {
   markContainerAsRoot,
   unmarkContainerAsRoot,
   precacheFiberNode,
+  applyPropsToDom,
 } from "./clients";

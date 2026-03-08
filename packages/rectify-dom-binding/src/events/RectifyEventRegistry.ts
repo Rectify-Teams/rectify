@@ -1,6 +1,7 @@
 import { RectifyDomEventName } from "./RectifyEventName";
 
 export const allNativeEvents: Set<RectifyDomEventName> = new Set();
+allNativeEvents.add("click");
 
 export const registrationNameDependencies: {
   [registrationName: string]: Array<RectifyDomEventName>;

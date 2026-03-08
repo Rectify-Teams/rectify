@@ -29,7 +29,11 @@ import {
 } from "./RectifyFiberService";
 import { PlacementFlag, UpdateFlag } from "./RectifyFiberFlags";
 import { withHooks } from "@rectify/hook";
-import { markContainerAsRoot, precacheFiberNode } from "@rectify/dom-binding";
+import {
+  applyPropsToDom,
+  markContainerAsRoot,
+  precacheFiberNode,
+} from "@rectify/dom-binding";
 
 export const createContainer = (container: Element): FiberRoot => {
   const fiberRoot = createHostRootFiber(container);
@@ -162,6 +166,7 @@ const commitMutationHostComponent = (wip: Fiber) => {
   if (!wip.stateNode) {
     const dom = createDomElementFromFiber(wip);
     wip.stateNode = dom;
+    applyPropsToDom(wip.stateNode, wip.memoizedProps, wip.pendingProps);
   }
 
   if (hasFlagOnFiber(wip, PlacementFlag)) {
@@ -178,6 +183,7 @@ const commitMutationHostComponent = (wip: Fiber) => {
   }
 
   if (hasFlagOnFiber(wip, UpdateFlag)) {
+    applyPropsToDom(wip.stateNode, wip.memoizedProps, wip.pendingProps);
     precacheFiberNode(wip, wip.stateNode);
     removeFlagFromFiber(wip, UpdateFlag);
   }

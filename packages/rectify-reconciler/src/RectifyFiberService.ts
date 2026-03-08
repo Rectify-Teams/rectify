@@ -1,10 +1,14 @@
 import {
   Fiber,
   isFunction,
+  isPlainObject,
+  isTextNode,
+  omit,
   RECTIFY_ELEMENT_TYPE,
   RECTIFY_FRAGMENT_TYPE,
   RECTIFY_TEXT_TYPE,
   RectifyElement,
+  shallowEqual,
 } from "@rectify/shared";
 import {
   FragmentComponent,
@@ -82,6 +86,18 @@ function getHostSibling(fiber: Fiber): Node | null {
   return null;
 }
 
+const hasPropsChanged = (newProps: any, oldProps: any) => {
+  const CHILDREN_KEY = "children";
+  if (isPlainObject(newProps) && isPlainObject(oldProps)) {
+    return !shallowEqual(
+      omit(newProps, [CHILDREN_KEY]),
+      omit(oldProps, [CHILDREN_KEY]),
+    );
+  }
+
+  return newProps !== oldProps;
+};
+
 export {
   addFlagToFiber,
   removeFlagFromFiber,
@@ -90,4 +106,5 @@ export {
   createDomElementFromFiber,
   getParentDom,
   getHostSibling,
+  hasPropsChanged,
 };
