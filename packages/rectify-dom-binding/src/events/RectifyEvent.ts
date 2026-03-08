@@ -1,5 +1,5 @@
 import { createEventListenerWrapper } from "./RectifyDomEventListener";
-import { addEventBubbleListener } from "./RectifyEventListener";
+import { addEventBubbleListener, addEventCaptureListener } from "./RectifyEventListener";
 import { RectifyDomEventName } from "./RectifyEventName";
 import { allNativeEvents } from "./RectifyEventRegistry";
 
@@ -20,5 +20,5 @@ const listenToNativeEvent = (
   target: EventTarget,
 ) => {
   const listener = createEventListenerWrapper(target, domEventName);
-  addEventBubbleListener(target, domEventName, listener as any);
+  addEventCaptureListener(target, domEventName, listener as any);
 };

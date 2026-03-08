@@ -10,6 +10,7 @@ export {
   isTextNode,
   shallowEqual,
   toArray,
+  omit,
 } from "./common";
 
 export {
