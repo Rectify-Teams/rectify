@@ -38,6 +38,7 @@ export const createHostRootFiber = (containerDom: Element) => {
     containerDom,
     root: createFiber(HostRoot, null),
     pendingLanes: NoLanes,
+    children: null,
   };
 };
 
@@ -53,18 +54,18 @@ export const createWorkInProgress = (current: Fiber, pendingProps: any) => {
     current.alternate = wip;
   } else {
     wip.pendingProps = pendingProps;
-
-    wip.flags = NoFlags;
     wip.deletions = null;
-    wip.lanes = NoLanes;
-    wip.childLanes = NoLanes;
   }
 
   wip.memoizedProps = current.memoizedProps;
+  wip.memoizedState = current.memoizedState;
   wip.return = current.return;
   wip.child = current.child;
   wip.sibling = current.sibling;
-
+  wip.flags = NoFlags;
+  wip.subtreeFlags = NoFlags;
+  wip.lanes = current.lanes;
+  wip.childLanes = current.childLanes;
   return wip;
 };
 

@@ -56,7 +56,7 @@ const dispatchEvent = (
 
     if (!isFunction(handler)) continue;
 
-    syntheticEvent.currentTarget = currFiber.stateNode;
+    syntheticEvent.currentTarget = currFiber.stateNode as Element;
     handler(syntheticEvent);
   }
 
