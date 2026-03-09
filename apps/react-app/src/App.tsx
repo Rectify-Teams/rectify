@@ -19,7 +19,7 @@ const App = () => {
     <div
       id="root"
       className="hello"
-      onClickCapture={() => {
+      onClick={() => {
         console.log("App");
         setCount((p) => p + 1);
       }}

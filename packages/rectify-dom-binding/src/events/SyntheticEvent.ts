@@ -1,14 +1,14 @@
 import { AnyNativeEvent } from "./RectifyDomEventListener";
 
 class SyntheticEvent {
-  target: EventTarget | null;
-  currentTarget: Node | null = null;
+  target: Element | null;
+  currentTarget: Element | null = null;
   nativeEvent: AnyNativeEvent;
 
   private propagationStopped: boolean = false;
 
   constructor(nativeEvent: AnyNativeEvent) {
-    this.target = nativeEvent.target;
+    this.target = nativeEvent.target as Element;
     this.nativeEvent = nativeEvent;
   }
 

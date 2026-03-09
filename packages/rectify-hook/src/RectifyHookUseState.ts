@@ -4,6 +4,7 @@ import {
   getFiberRendering,
   getHookIndex,
   nextHookIndex,
+  scheduleRerender,
 } from "./RectifyHookRenderingFiber";
 
 type StateInitializer<S> = S | (() => S);
@@ -66,6 +67,8 @@ function useState<S>(
       }
       last.next = update;
     }
+
+    scheduleRerender(fiber);
   };
 
   nextHookIndex();
