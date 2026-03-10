@@ -1,7 +1,10 @@
 import { Fiber, RectifyNode } from "@rectify/shared";
 import { FiberRoot } from "./RectifyFiberTypes";
 import { createHostRootFiber, createWorkInProgress } from "./RectifyFiber";
-import { setScheduledFiberRoot, getScheduledFiberRoot } from "./RectifyFiberInstance";
+import {
+  setScheduledFiberRoot,
+  getScheduledFiberRoot,
+} from "./RectifyFiberInstance";
 import { markContainerAsRoot } from "@rectify/dom-binding";
 import { workLoop } from "./RectifyFiberWorkLoop";
 import { commitWork } from "./RectifyFiberCommitWork";
@@ -12,7 +15,9 @@ setScheduleRerender((_fiber: Fiber) => {
   if (!fiberRoot) return;
 
   setScheduledFiberRoot(fiberRoot);
-  const wipRoot = createWorkInProgress(fiberRoot.root, { children: fiberRoot.children });
+  const wipRoot = createWorkInProgress(fiberRoot.root, {
+    children: fiberRoot.children,
+  });
   const finished = renderRoot(wipRoot);
   fiberRoot.root = finished;
   markContainerAsRoot(finished, fiberRoot.containerDom);
