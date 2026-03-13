@@ -4,32 +4,50 @@ import { Lanes } from "./RectifyFiberLanes";
 type Update = {
   lanes: Lanes;
   fiber: Fiber;
-  payload: any;
+  payload?: unknown;
   callback?: () => void;
   next: Update | null;
 };
 
 type Instance = {
-  updateQueue: Update | null;
+  head: Update | null;
+  tail: Update | null;
 };
 
 const instance: Instance = {
-  updateQueue: null,
+  head: null,
+  tail: null,
 };
 
-let lastQueue: Update | null = null;
-const enqueueUpdate = (update: Update) => {
-  lastQueue = instance.updateQueue;
-  while (lastQueue) {
-    lastQueue = lastQueue.next;
+const enqueueUpdate = (update: Update): void => {
+  update.next = null;
+
+  if (instance.tail === null) {
+    instance.head = update;
+    instance.tail = update;
+    return;
   }
-  instance.updateQueue = lastQueue = update;
+
+  instance.tail.next = update;
+  instance.tail = update;
+
+  console.log(instance);
 };
 
-const dequeueUpdate = () => {
-  const update = instance.updateQueue;
-  instance.updateQueue = instance.updateQueue?.next ?? null;
-  return update;
+const dequeueUpdate = (): Update | null => {
+  const first = instance.head;
+  if (first === null) {
+    return null;
+  }
+
+  instance.head = first.next;
+
+  if (instance.head === null) {
+    instance.tail = null;
+  }
+
+  first.next = null;
+  return first;
 };
 
 export { enqueueUpdate, dequeueUpdate };
