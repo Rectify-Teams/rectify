@@ -21,17 +21,22 @@ const Counter = () => {
 
 const App = () => {
   console.log("App");
-  const [count, setCount] = useState(1);
+  const [mount, setMount] = useState(false);
   return jsx("div", {
     id: "root",
     className: "hello",
     onClick: () => {
-      setCount((p) => p + 1);
+      setMount((p) => !p);
     },
     children: [
-      jsx("h1", { children: "hello1" }),
-      jsx(Container, { count }),
-      jsx(Counter),
+      mount
+        ? jsx(Container, { count: 1984 })
+        : jsx("h1", { children: "Heading" }),
+      mount && jsx(Counter),
+      jsx("button", {
+        style: { backgroundColor: mount ? "red" : "transparent" },
+        children: "click",
+      }),
     ],
   });
 };
