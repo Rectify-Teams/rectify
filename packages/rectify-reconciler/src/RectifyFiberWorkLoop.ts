@@ -139,7 +139,6 @@ const reconcilerChildren = (wip: Fiber, children: RectifyNode) => {
       if (oldCurrentFiberChild) {
         addFlagToFiber(oldCurrentFiberChild, DeletionFlag);
         deletionFiber.push(oldCurrentFiberChild);
-        oldCurrentFiberChild = oldCurrentFiberChild?.sibling;
       }
     }
 

@@ -12,8 +12,12 @@ import { HostComponent, HostText } from "./RectifyFiberWorkTags";
 
 const MutationMask = PlacementFlag | UpdateFlag;
 
-export const commitWork = (finishedWork: Fiber) => {
+const commitWork = (finishedWork: Fiber) => {
   if (finishedWork.flags & MutationMask) {
+    if (finishedWork.deletions?.length) {
+      finishedWork.deletions.forEach(commitDeletion);
+      finishedWork.deletions = null;
+    }
     commitMutation(finishedWork);
     completedWork(finishedWork);
   }
@@ -52,10 +56,11 @@ const commitMutationHostComponent = (wip: Fiber) => {
 
   if (hasFlagOnFiber(wip, PlacementFlag)) {
     const parentDom = getParentDom(wip);
-    const sibling = getHostSibling(wip);
+    const siblingNode =
+      getHostSibling(wip) ?? (wip.return ? getHostSibling(wip.return) : null);
 
-    if (sibling) {
-      parentDom.insertBefore(wip.stateNode, sibling);
+    if (siblingNode) {
+      parentDom.insertBefore(wip.stateNode, siblingNode);
     } else {
       parentDom.appendChild(wip.stateNode);
     }
@@ -98,3 +103,21 @@ const commitMutationHostText = (wip: Fiber) => {
     removeFlagFromFiber(wip, UpdateFlag);
   }
 };
+
+const commitDeletion = (fiber: Fiber) => {
+  removeHostNodesFromParent(fiber);
+};
+
+const removeHostNodesFromParent = (fiber: Fiber) => {
+  if (fiber.workTag === HostComponent || fiber.workTag === HostText) {
+    (fiber?.stateNode as Element)?.remove();
+  }
+
+  let child = fiber.child;
+  while (child) {
+    removeHostNodesFromParent(child);
+    child = child.sibling;
+  }
+};
+
+export { commitWork };
