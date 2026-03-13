@@ -4,23 +4,39 @@ import { createHostRootFiber, createWorkInProgress } from "./RectifyFiber";
 import {
   setScheduledFiberRoot,
   getScheduledFiberRoot,
+  getSchedulingRenderer,
+  setSchedulingRenderer,
 } from "./RectifyFiberInstance";
 import { markContainerAsRoot } from "@rectify/dom-binding";
 import { workLoop } from "./RectifyFiberWorkLoop";
 import { commitWork } from "./RectifyFiberCommitWork";
 import { setScheduleRerender } from "@rectify/hook";
+import { enqueueUpdate } from "./RectifyFiberConcurrentUpdate";
+import { requestUpdateLane } from "./RectifyFiberRenderPriority";
 
 setScheduleRerender((_fiber: Fiber) => {
-  const fiberRoot = getScheduledFiberRoot();
-  if (!fiberRoot) return;
-
-  setScheduledFiberRoot(fiberRoot);
-  const wipRoot = createWorkInProgress(fiberRoot.root, {
-    children: fiberRoot.children,
+  enqueueUpdate({
+    lanes: requestUpdateLane(),
+    fiber: _fiber,
+    next: null,
   });
-  const finished = renderRoot(wipRoot);
-  fiberRoot.root = finished;
-  markContainerAsRoot(finished, fiberRoot.containerDom);
+
+  if (getSchedulingRenderer()) return;
+  setSchedulingRenderer(true);
+
+  queueMicrotask(() => {
+    const fiberRoot = getScheduledFiberRoot();
+    if (!fiberRoot) return;
+
+    setScheduledFiberRoot(fiberRoot);
+    const wipRoot = createWorkInProgress(fiberRoot.root, {
+      children: fiberRoot.children,
+    });
+    const finished = renderRoot(wipRoot);
+    fiberRoot.root = finished;
+    markContainerAsRoot(finished, fiberRoot.containerDom);
+    setSchedulingRenderer(false);
+  });
 });
 
 export const createContainer = (container: Element): FiberRoot => {
