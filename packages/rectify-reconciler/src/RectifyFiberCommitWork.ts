@@ -1,6 +1,6 @@
 import { applyPropsToDom, precacheFiberNode } from "@rectify/dom-binding";
 import { Fiber } from "@rectify/shared";
-import { PlacementFlag, UpdateFlag } from "./RectifyFiberFlags";
+import { NoFlags, PlacementFlag, UpdateFlag } from "./RectifyFiberFlags";
 import {
   createDomElementFromFiber,
   hasFlagOnFiber,
@@ -13,11 +13,12 @@ import { HostComponent, HostText } from "./RectifyFiberWorkTags";
 const MutationMask = PlacementFlag | UpdateFlag;
 
 const commitWork = (finishedWork: Fiber) => {
+  if (finishedWork.deletions?.length) {
+    finishedWork.deletions.forEach(commitDeletion);
+    finishedWork.deletions = null;
+  }
+
   if (finishedWork.flags & MutationMask) {
-    if (finishedWork.deletions?.length) {
-      finishedWork.deletions.forEach(commitDeletion);
-      finishedWork.deletions = null;
-    }
     commitMutation(finishedWork);
     completedWork(finishedWork);
   }
@@ -29,6 +30,9 @@ const commitWork = (finishedWork: Fiber) => {
       child = child.sibling;
     }
   }
+
+  finishedWork.flags = NoFlags;
+  finishedWork.subtreeFlags = NoFlags;
 };
 
 const completedWork = (wip: Fiber) => {

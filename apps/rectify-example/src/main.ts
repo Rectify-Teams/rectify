@@ -1,43 +1,41 @@
-import { createRoot, jsx, useState, type FC } from "@rectify/core";
-
-const Container: FC<{ count: number }> = ({ count }) => {
-  console.log("container");
-  return jsx("div", {
-    children: ["Container ", count],
-  });
-};
+import { createRoot, jsx, useState } from "@rectify/core";
 
 const Counter = () => {
   console.log("Counter");
-  const [count, setCount] = useState(1);
+  const [count, setCount] = useState(0);
   return jsx("div", {
-    onClick: (e) => {
-      e.stopPropagation();
-      setCount((p) => p + 1);
-    },
-    children: ["Counter ", count],
+    id: "counter",
+    children: [
+      jsx("h1", { children: ["counter: ", count] }),
+      jsx("button", {
+        onClick: () => setCount((p) => p + 1),
+        children: "click",
+      }),
+      jsx(Hr),
+    ],
+  });
+};
+
+const Hr = () => jsx("hr", { id: "hr" });
+
+const Content = () => {
+  console.log("Content");
+  const [mount, setMount] = useState(false);
+  return jsx("div", {
+    id: "content",
+    children: [
+      jsx("h2", { onClick: () => setMount((p) => !p), children: "content" }),
+      mount && jsx(Counter),
+      jsx(Hr),
+    ],
   });
 };
 
 const App = () => {
-  console.log("App");
-  const [mount, setMount] = useState(false);
+  console.log("App_component");
   return jsx("div", {
-    id: "root",
-    className: "hello",
-    onClick: () => {
-      setMount((p) => !p);
-    },
-    children: [
-      mount
-        ? jsx(Container, { count: 1984 })
-        : jsx("h1", { children: "Heading" }),
-      mount && jsx(Counter),
-      jsx("button", {
-        style: { backgroundColor: mount ? "red" : "transparent" },
-        children: "click",
-      }),
-    ],
+    id: "App_component",
+    children: [jsx("h1", { children: "App" }), jsx(Content), jsx(Hr)],
   });
 };
 

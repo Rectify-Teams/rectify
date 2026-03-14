@@ -31,7 +31,6 @@ const enqueueUpdate = (update: Update): void => {
   instance.tail.next = update;
   instance.tail = update;
 
-  console.log(instance);
 };
 
 const dequeueUpdate = (): Update | null => {

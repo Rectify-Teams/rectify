@@ -24,6 +24,7 @@ import {
   createFiberFromRectifyElement,
   createWorkInProgress,
 } from "./RectifyFiber";
+import { getCurrentLanePriority } from "./RectifyFiberRenderPriority";
 
 export const workLoop = (wipRoot: Fiber) => {
   let workInProgress: Fiber | null = wipRoot;
@@ -73,11 +74,12 @@ const completeUnitOfWork = (unit: Fiber): Fiber | null => {
 
     completed = completed.return;
   }
-
+  
   return null;
 };
 
 const bubbleProperties = (wip: Fiber) => {
+  wip.lanes &= ~getCurrentLanePriority();
   let subtreeFlags = NoFlags;
   let childLanes = NoLanes;
 

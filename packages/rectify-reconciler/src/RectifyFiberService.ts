@@ -76,6 +76,15 @@ const getParentDom = (fiber: Fiber): Node => {
 function getHostSibling(fiber: Fiber): Node | null {
   let sibling = fiber.sibling;
   while (sibling) {
+    if (sibling.workTag === FunctionComponent) {
+      let child = sibling.child;
+      while (child) {
+        if (child.workTag === HostComponent || child.workTag === HostText) {
+          return child.stateNode;
+        }
+        child = child.sibling;
+      }
+    }
     if (sibling.workTag === HostComponent || sibling.workTag === HostText) {
       return sibling.stateNode;
     }

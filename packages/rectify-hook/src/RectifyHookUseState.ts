@@ -67,7 +67,6 @@ function useState<S>(
       }
       last.next = update;
     }
-
     scheduleRerender(fiber);
   };
 

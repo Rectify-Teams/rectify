@@ -4,4 +4,8 @@ const requestUpdateLane = () => {
   return SyncLane;
 };
 
-export { requestUpdateLane };
+const getCurrentLanePriority = () => {
+  return SyncLane;
+};
+
+export { requestUpdateLane, getCurrentLanePriority };
