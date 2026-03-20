@@ -8,11 +8,18 @@ import {
   setSchedulingRenderer,
 } from "./RectifyFiberInstance";
 import { markContainerAsRoot } from "@rectify/dom-binding";
-import { workLoop } from "./RectifyFiberWorkLoop";
+import { workLoop, workLoopOnFiberLanes } from "./RectifyFiberWorkLoop";
 import { commitWork } from "./RectifyFiberCommitWork";
 import { setScheduleRerender } from "@rectify/hook";
-import { enqueueUpdate } from "./RectifyFiberConcurrentUpdate";
-import { requestUpdateLane } from "./RectifyFiberRenderPriority";
+import {
+  dequeueUpdate,
+  enqueueUpdate,
+  UpdateQueue,
+} from "./RectifyFiberConcurrentUpdate";
+import {
+  getCurrentLanePriority,
+  requestUpdateLane,
+} from "./RectifyFiberRenderPriority";
 
 setScheduleRerender((_fiber: Fiber) => {
   enqueueUpdate({
@@ -27,14 +34,12 @@ setScheduleRerender((_fiber: Fiber) => {
   queueMicrotask(() => {
     const fiberRoot = getScheduledFiberRoot();
     if (!fiberRoot) return;
-
+    markLaneToRoot();
     setScheduledFiberRoot(fiberRoot);
-    const wipRoot = createWorkInProgress(fiberRoot.root, {
-      children: fiberRoot.children,
-    });
-    const finished = renderRoot(wipRoot);
-    fiberRoot.root = finished;
-    markContainerAsRoot(finished, fiberRoot.containerDom);
+    const renderLanes = getCurrentLanePriority();
+    workLoopOnFiberLanes(fiberRoot.root, renderLanes);
+    commitWork(fiberRoot.root);
+    markContainerAsRoot(fiberRoot.root, fiberRoot.containerDom);
     setSchedulingRenderer(false);
   });
 });
@@ -62,4 +67,22 @@ const renderRoot = (wipRoot: Fiber): Fiber => {
   workLoop(wipRoot);
   commitWork(wipRoot);
   return wipRoot;
+};
+
+const markLaneToRoot = () => {
+  let update = dequeueUpdate();
+  while (update) {
+    bubbleLaneToRoot(update);
+    update = dequeueUpdate();
+  }
+};
+
+const bubbleLaneToRoot = (updateQueue: UpdateQueue) => {
+  let fiber: Fiber | null = updateQueue.fiber;
+  fiber.lanes |= updateQueue.lanes;
+  fiber = fiber.return;
+  while (fiber) {
+    fiber.childLanes |= updateQueue.lanes;
+    fiber = fiber.return;
+  }
 };

@@ -19,7 +19,7 @@ import {
   PlacementFlag,
   UpdateFlag,
 } from "./RectifyFiberFlags";
-import { NoLanes } from "./RectifyFiberLanes";
+import { Lanes, NoLanes } from "./RectifyFiberLanes";
 import {
   createFiberFromRectifyElement,
   createWorkInProgress,
@@ -36,6 +36,20 @@ export const workLoop = (wipRoot: Fiber) => {
       workInProgress = next;
     } else {
       workInProgress = completeUnitOfWork(workInProgress);
+    }
+  }
+};
+
+export const workLoopOnFiberLanes = (wipRoot: Fiber, renderLanes: Lanes) => {
+  if (wipRoot.lanes & renderLanes) {
+    return workLoop(wipRoot);
+  }
+
+  if (wipRoot.childLanes & renderLanes) {
+    let child: Fiber | null = wipRoot.child;
+    while (child) {
+      workLoopOnFiberLanes(child, renderLanes);
+      child = child.sibling;
     }
   }
 };
@@ -74,7 +88,7 @@ const completeUnitOfWork = (unit: Fiber): Fiber | null => {
 
     completed = completed.return;
   }
-  
+
   return null;
 };
 
