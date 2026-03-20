@@ -1,17 +1,17 @@
 import { Fiber } from "@rectify/shared";
 import { Lanes } from "./RectifyFiberLanes";
 
-type Update = {
+export type UpdateQueue = {
   lanes: Lanes;
   fiber: Fiber;
   payload?: unknown;
   callback?: () => void;
-  next: Update | null;
+  next: UpdateQueue | null;
 };
 
 type Instance = {
-  head: Update | null;
-  tail: Update | null;
+  head: UpdateQueue | null;
+  tail: UpdateQueue | null;
 };
 
 const instance: Instance = {
@@ -19,7 +19,7 @@ const instance: Instance = {
   tail: null,
 };
 
-const enqueueUpdate = (update: Update): void => {
+const enqueueUpdate = (update: UpdateQueue): void => {
   update.next = null;
 
   if (instance.tail === null) {
@@ -33,7 +33,7 @@ const enqueueUpdate = (update: Update): void => {
 
 };
 
-const dequeueUpdate = (): Update | null => {
+const dequeueUpdate = (): UpdateQueue | null => {
   const first = instance.head;
   if (first === null) {
     return null;

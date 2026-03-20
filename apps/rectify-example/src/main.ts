@@ -11,12 +11,9 @@ const Counter = () => {
         onClick: () => setCount((p) => p + 1),
         children: "click",
       }),
-      jsx(Hr),
     ],
   });
 };
-
-const Hr = () => jsx("hr", { id: "hr" });
 
 const Content = () => {
   console.log("Content");
@@ -26,7 +23,6 @@ const Content = () => {
     children: [
       jsx("h2", { onClick: () => setMount((p) => !p), children: "content" }),
       mount && jsx(Counter),
-      jsx(Hr),
     ],
   });
 };
@@ -35,8 +31,8 @@ const App = () => {
   console.log("App_component");
   return jsx("div", {
     id: "App_component",
-    children: [jsx("h1", { children: "App" }), jsx(Content), jsx(Hr)],
+    children: [jsx("h1", { children: "App" }), jsx(Content)],
   });
 };
 
-createRoot(document.getElementById("app")!).render(jsx(App));
+createRoot(document.getElementById("app")!).render(jsx(Content));
