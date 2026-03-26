@@ -1,5 +1,7 @@
 import { createRoot, jsx, useState } from "@rectify/core";
 
+const Hr = () => jsx("hr");
+
 const Counter = () => {
   console.log("Counter");
   const [count, setCount] = useState(0);
@@ -7,6 +9,7 @@ const Counter = () => {
     id: "counter",
     children: [
       jsx("h1", { children: ["counter: ", count] }),
+      jsx(Hr),
       jsx("button", {
         onClick: () => setCount((p) => p + 1),
         children: "click",
@@ -23,6 +26,7 @@ const Content = () => {
     children: [
       jsx("h2", { onClick: () => setMount((p) => !p), children: "content" }),
       mount && jsx(Counter),
+      jsx(() => jsx("hr")),
     ],
   });
 };
@@ -35,4 +39,4 @@ const App = () => {
   });
 };
 
-createRoot(document.getElementById("app")!).render(jsx(Content));
+createRoot(document.getElementById("app")!).render(jsx(App));

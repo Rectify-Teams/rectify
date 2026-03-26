@@ -26,6 +26,21 @@ import {
 } from "./RectifyFiber";
 import { getCurrentLanePriority } from "./RectifyFiberRenderPriority";
 
+const replaceCurrentWithWip = (current: Fiber, wip: Fiber) => {
+  const parent = wip.return;
+  if (!parent) return;
+
+  if (parent.child === current) {
+    parent.child = wip;
+  } else {
+    let prevSibling = parent.child;
+    while (prevSibling && prevSibling.sibling !== current) {
+      prevSibling = prevSibling.sibling;
+    }
+    if (prevSibling) prevSibling.sibling = wip;
+  }
+};
+
 export const workLoop = (wipRoot: Fiber) => {
   let workInProgress: Fiber | null = wipRoot;
 
@@ -35,14 +50,18 @@ export const workLoop = (wipRoot: Fiber) => {
     if (next) {
       workInProgress = next;
     } else {
-      workInProgress = completeUnitOfWork(workInProgress);
+      workInProgress = completeUnitOfWork(workInProgress, wipRoot);
     }
   }
 };
 
 export const workLoopOnFiberLanes = (wipRoot: Fiber, renderLanes: Lanes) => {
   if (wipRoot.lanes & renderLanes) {
-    return workLoop(wipRoot);
+    const wip = createWorkInProgress(wipRoot, wipRoot.pendingProps);
+    replaceCurrentWithWip(wipRoot, wip);
+    workLoop(wip);
+    bubbleFlagsToRoot(wip);
+    return;
   }
 
   if (wipRoot.childLanes & renderLanes) {
@@ -76,11 +95,15 @@ const beginWork = (wip: Fiber): Fiber | null => {
   return wip.child;
 };
 
-const completeUnitOfWork = (unit: Fiber): Fiber | null => {
+const completeUnitOfWork = (unit: Fiber, stopAt: Fiber): Fiber | null => {
   let completed: Fiber | null = unit;
 
   while (completed) {
     bubbleProperties(completed);
+
+    if (completed === stopAt) {
+      return null;
+    }
 
     if (completed.sibling) {
       return completed.sibling;
@@ -90,6 +113,17 @@ const completeUnitOfWork = (unit: Fiber): Fiber | null => {
   }
 
   return null;
+};
+
+const bubbleFlagsToRoot = (wip: Fiber) => {
+  let current: Fiber = wip;
+  let parent = current.return;
+  while (parent) {
+    parent.subtreeFlags |= current.flags | current.subtreeFlags;
+    parent.childLanes |= current.lanes | current.childLanes;
+    current = parent;
+    parent = parent.return;
+  }
 };
 
 const bubbleProperties = (wip: Fiber) => {
