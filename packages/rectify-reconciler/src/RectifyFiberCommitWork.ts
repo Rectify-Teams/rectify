@@ -56,11 +56,23 @@ const detachRef = (fiber: Fiber): void => {
   }
 };
 
-const insertIntoParent = (wip: Fiber, node: Node) => {
+const insertIntoParent = (wip: Fiber, node: Node): void => {
   const parentDom = getParentDom(wip);
-  const sibling = getHostSibling(wip) ?? (wip.return ? getHostSibling(wip.return) : null);
-  if (sibling) parentDom.insertBefore(node, sibling);
+  // Look for a host sibling at this level; if none, check the parent level
+  // (handles fibers nested inside function components with no host wrapper).
+  const before = getHostSibling(wip) ?? (wip.return ? getHostSibling(wip.return) : null);
+  if (before) parentDom.insertBefore(node, before);
   else parentDom.appendChild(node);
+};
+
+/**
+ * Physically place or re-place `node` in the DOM and attach its ref.
+ * Used for both PlacementFlag (new nodes) and MoveFlag (reordered nodes).
+ */
+const placeNode = (wip: Fiber, node: Node): void => {
+  insertIntoParent(wip, node);
+  precacheFiberNode(wip, node);
+  attachRef(wip);
 };
 
 const commitMutation = (childFiber: Fiber) => {
@@ -83,18 +95,14 @@ const commitMutationHostComponent = (wip: Fiber) => {
   }
 
   if (hasFlagOnFiber(wip, PlacementFlag)) {
-    insertIntoParent(wip, wip.stateNode!);
-    precacheFiberNode(wip, wip.stateNode!);
-    attachRef(wip);
+    placeNode(wip, wip.stateNode!);
     removeFlagFromFiber(wip, PlacementFlag);
   }
 
   if (hasFlagOnFiber(wip, MoveFlag)) {
-    // Node already exists in the DOM but at the wrong position – re-insert.
+    // Node already exists in the DOM but at the wrong position — re-insert.
     (wip.stateNode as Element).remove();
-    insertIntoParent(wip, wip.stateNode!);
-    precacheFiberNode(wip, wip.stateNode!);
-    attachRef(wip);
+    placeNode(wip, wip.stateNode!);
     removeFlagFromFiber(wip, MoveFlag);
   }
 
@@ -114,15 +122,13 @@ const commitMutationHostText = (wip: Fiber) => {
   }
 
   if (hasFlagOnFiber(wip, PlacementFlag)) {
-    insertIntoParent(wip, wip.stateNode!);
-    precacheFiberNode(wip, wip.stateNode!);
+    placeNode(wip, wip.stateNode!);
     removeFlagFromFiber(wip, PlacementFlag);
   }
 
   if (hasFlagOnFiber(wip, MoveFlag)) {
     (wip.stateNode as Text).remove();
-    insertIntoParent(wip, wip.stateNode!);
-    precacheFiberNode(wip, wip.stateNode!);
+    placeNode(wip, wip.stateNode!);
     removeFlagFromFiber(wip, MoveFlag);
   }
 
