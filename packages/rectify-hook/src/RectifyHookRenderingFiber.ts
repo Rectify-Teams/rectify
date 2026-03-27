@@ -1,4 +1,4 @@
-import { Fiber, isFunction } from "@rectify/shared";
+import { Fiber } from "@rectify/shared";
 
 type ScheduleRerender = (fiber: Fiber) => void;
 
@@ -14,21 +14,26 @@ const instance: Instance = {
   scheduleRerender: null,
 };
 
-export const getFiberRendering = () => instance.fiberRendering;
-export const setFiberRendering = (fiber: Fiber | null) => {
+export const getFiberRendering = (): Fiber | null => instance.fiberRendering;
+
+export const setFiberRendering = (fiber: Fiber | null): void => {
   instance.fiberRendering = fiber;
 };
 
-export const getHookIndex = () => instance.hookIndex;
-export const setHookIndex = (index: number | ((prev: number) => number)) => {
-  instance.hookIndex = isFunction(index) ? index(instance.hookIndex) : index;
-};
-export const nextHookIndex = () => setHookIndex((p) => p + 1);
+export const getHookIndex = (): number => instance.hookIndex;
 
-export const setScheduleRerender = (fn: ScheduleRerender) => {
+export const setHookIndex = (index: number): void => {
+  instance.hookIndex = index;
+};
+
+export const nextHookIndex = (): void => {
+  instance.hookIndex += 1;
+};
+
+export const setScheduleRerender = (fn: ScheduleRerender): void => {
   instance.scheduleRerender = fn;
 };
 
-export const scheduleRerender = (fiber: Fiber) => {
+export const scheduleRerender = (fiber: Fiber): void => {
   instance.scheduleRerender?.(fiber);
 };

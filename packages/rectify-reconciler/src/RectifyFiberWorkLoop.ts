@@ -19,12 +19,13 @@ import {
   PlacementFlag,
   UpdateFlag,
 } from "./RectifyFiberFlags";
-import { Lanes, NoLanes } from "./RectifyFiberLanes";
+import { Lanes, NoLanes, SyncLane, InputLane } from "./RectifyFiberLanes";
 import {
   createFiberFromRectifyElement,
   createWorkInProgress,
 } from "./RectifyFiber";
 import { getCurrentLanePriority } from "./RectifyFiberRenderPriority";
+import { shouldYield } from "./RectifyFiberScheduler";
 
 const swapCurrentForWip = (current: Fiber, wip: Fiber) => {
   const parent = wip.return;
@@ -56,22 +57,63 @@ export const workLoop = (wipRoot: Fiber) => {
   }
 };
 
-export const workLoopOnFiberLanes = (wipRoot: Fiber, renderLanes: Lanes) => {
+/**
+ * Interruptible work loop used for non-urgent lanes (Default / Transition / Idle).
+ * Yields back to the browser when the frame budget is exceeded; the scheduler
+ * will re-post a task to continue with the remaining pending lanes.
+ */
+export const workLoopConcurrent = (wipRoot: Fiber): boolean => {
+  let workInProgress: Fiber | null = wipRoot;
+
+  while (workInProgress && !shouldYield()) {
+    const next = beginWork(workInProgress);
+
+    if (next) {
+      workInProgress = next;
+    } else {
+      workInProgress = completeUnitOfWork(workInProgress, wipRoot);
+    }
+  }
+
+  // Returns true when the tree was fully processed, false if we yielded early.
+  return workInProgress === null;
+};
+
+/**
+ * Returns true when the subtree rooted at wipRoot was fully processed for the
+ * given renderLanes, false when a concurrent work loop yielded early.
+ */
+export const workLoopOnFiberLanes = (
+  wipRoot: Fiber,
+  renderLanes: Lanes,
+): boolean => {
   if (wipRoot.lanes & renderLanes) {
     const wip = createWorkInProgress(wipRoot, wipRoot.pendingProps);
     swapCurrentForWip(wipRoot, wip);
-    workLoop(wip);
-    bubbleFlagsToRoot(wip);
-    return;
+
+    const isSync = !!(renderLanes & (SyncLane | InputLane));
+    let completed: boolean;
+    if (isSync) {
+      workLoop(wip);
+      completed = true;
+    } else {
+      completed = workLoopConcurrent(wip);
+    }
+
+    if (completed) bubbleFlagsToRoot(wip);
+    return completed;
   }
 
   if (wipRoot.childLanes & renderLanes) {
     let child: Fiber | null = wipRoot.child;
     while (child) {
-      workLoopOnFiberLanes(child, renderLanes);
+      const done = workLoopOnFiberLanes(child, renderLanes);
+      if (!done) return false; // propagate early-exit upward
       child = child.sibling;
     }
   }
+
+  return true;
 };
 
 const beginWork = (wip: Fiber): Fiber | null => {

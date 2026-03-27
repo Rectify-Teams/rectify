@@ -28,10 +28,10 @@ function useState<S>(
   const hookIndex = getHookIndex();
 
   let state: Hook<S | undefined> | null = fiber.memoizedState;
-  let prevState = null;
+  let prevHook: Hook<S | undefined> | null = null;
 
   for (let i = 0; i < hookIndex; i++) {
-    prevState = state;
+    prevHook = state;
     state = state?.next ?? null;
   }
 
@@ -41,8 +41,8 @@ function useState<S>(
       queue: null,
       next: null,
     };
-    if (prevState) {
-      prevState.next = state;
+    if (prevHook) {
+      prevHook.next = state;
     } else {
       fiber.memoizedState = state;
     }
