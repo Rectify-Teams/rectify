@@ -10,7 +10,7 @@
     "test": "pnpm -r test",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "pnpm build && changeset publish"
+    "release": "pnpm --filter @rectify/core --filter @rectify/babel-transform-rectify-jsx --filter @rectify/vite-plugin --filter create-rectify-app build && changeset publish"
   },
   "keywords": [],
   "author": "",

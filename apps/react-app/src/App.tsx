@@ -1,10 +1,11 @@
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 
 const Tooltip = () => {
   const [count, setCount] = useState(0);
 
   useLayoutEffect(() => {
     console.log("count", count);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (count > 3) setCount(0);
   }, [count]);
 
