@@ -4,8 +4,6 @@ import { Lanes } from "./RectifyFiberLanes";
 export type UpdateQueue = {
   lanes: Lanes;
   fiber: Fiber;
-  payload?: unknown;
-  callback?: () => void;
   next: UpdateQueue | null;
 };
 
@@ -30,7 +28,6 @@ const enqueueUpdate = (update: UpdateQueue): void => {
 
   instance.tail.next = update;
   instance.tail = update;
-
 };
 
 const dequeueUpdate = (): UpdateQueue | null => {

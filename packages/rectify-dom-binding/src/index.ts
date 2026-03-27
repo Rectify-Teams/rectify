@@ -1,4 +1,4 @@
-export { listenToAllEventSupported, SyntheticEvent } from "./events";
+export { listenToAllEventSupported, SyntheticEvent, injectEventPriorityCallbacks } from "./events";
 export {
   markContainerAsRoot,
   unmarkContainerAsRoot,

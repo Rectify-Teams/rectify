@@ -4,10 +4,11 @@ import { createHostRootFiber, createWorkInProgress } from "./RectifyFiber";
 import {
   setScheduledFiberRoot,
   getScheduledFiberRoot,
-  getSchedulingRenderer,
-  setSchedulingRenderer,
 } from "./RectifyFiberInstance";
-import { markContainerAsRoot } from "@rectify/dom-binding";
+import {
+  markContainerAsRoot,
+  injectEventPriorityCallbacks,
+} from "@rectify/dom-binding";
 import { workLoop, workLoopOnFiberLanes } from "./RectifyFiberWorkLoop";
 import { commitWork } from "./RectifyFiberCommitWork";
 import { setScheduleRerender, flushEffects } from "@rectify/hook";
@@ -17,68 +18,95 @@ import {
   UpdateQueue,
 } from "./RectifyFiberConcurrentUpdate";
 import {
-  getCurrentLanePriority,
   requestUpdateLane,
+  setCurrentEventPriority,
+  resetCurrentEventPriority,
+  setCurrentRenderingLanes,
 } from "./RectifyFiberRenderPriority";
+import {
+  scheduleRenderLane,
+  setWorkCallback,
+  setWipRoot,
+  getWipRoot,
+  clearWipRoot,
+} from "./RectifyFiberScheduler";
+import { SyncLane } from "./RectifyFiberLanes";
 
-const scheduleChannel = new MessageChannel();
+// ---------------------------------------------------------------------------
+// Wire up event priority into dom-binding
+// ---------------------------------------------------------------------------
+injectEventPriorityCallbacks(
+  setCurrentEventPriority,
+  resetCurrentEventPriority,
+);
 
-const initRerenderScheduler = () => {
-  scheduleChannel.port1.onmessage = () => {
-    const fiberRoot = getScheduledFiberRoot();
-    if (!fiberRoot) return;
-    flushPendingUpdates();
-    setScheduledFiberRoot(fiberRoot);
-    const renderLanes = getCurrentLanePriority();
-    workLoopOnFiberLanes(fiberRoot.root, renderLanes);
-    commitWork(fiberRoot.root);
-    markContainerAsRoot(fiberRoot.root, fiberRoot.containerDom);
-    setSchedulingRenderer(false);
-    flushEffects();
-  };
+// ---------------------------------------------------------------------------
+// Work callback – called by the scheduler for each lane tier
+// ---------------------------------------------------------------------------
+const performWork = (lanes: number): void => {
+  const fiberRoot = getScheduledFiberRoot();
+  if (!fiberRoot) return;
 
-  setScheduleRerender((fiber: Fiber) => {
-    enqueueUpdate({
-      lanes: requestUpdateLane(),
-      fiber,
-      next: null,
-    });
+  // Only flush pending updates when starting fresh (not resuming a yield).
+  if (!getWipRoot()) flushPendingUpdates();
 
-    if (getSchedulingRenderer()) return;
-    setSchedulingRenderer(true);
-    scheduleChannel.port2.postMessage(null);
-  });
+  setCurrentRenderingLanes(lanes);
+  const completed = workLoopOnFiberLanes(fiberRoot.root, lanes);
+
+  if (!completed) {
+    // Tree is only partially reconciled – store the root so the next
+    // scheduler task for this lane can resume rather than restart.
+    setWipRoot(fiberRoot.root);
+    scheduleRenderLane(lanes); // re-post a task for the same lane
+    return;
+  }
+
+  // Tree fully reconciled – safe to commit.
+  clearWipRoot();
+  commitWork(fiberRoot.root);
+  markContainerAsRoot(fiberRoot.root, fiberRoot.containerDom);
+  flushEffects();
 };
 
-initRerenderScheduler();
+setWorkCallback(performWork);
 
+// ---------------------------------------------------------------------------
+// Schedule rerender – called by useState dispatcher
+// ---------------------------------------------------------------------------
+setScheduleRerender((fiber: Fiber) => {
+  const lane = requestUpdateLane();
+  enqueueUpdate({ lanes: lane, fiber, next: null });
+  scheduleRenderLane(lane);
+});
+
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
 export const createContainer = (container: Element): FiberRoot => {
-  const fiberRoot = createHostRootFiber(container);
-  return fiberRoot;
+  return createHostRootFiber(container);
 };
 
 export const updateContainer = (
   children: RectifyNode,
   fiberRoot: FiberRoot,
-) => {
+): void => {
   fiberRoot.children = children;
   setScheduledFiberRoot(fiberRoot);
+
   const wipRoot = createWorkInProgress(fiberRoot.root, { children });
-
-  const finished = renderRoot(wipRoot);
-  fiberRoot.root = finished;
-  markContainerAsRoot(finished, fiberRoot.containerDom);
-  setScheduledFiberRoot(fiberRoot);
-};
-
-const renderRoot = (wipRoot: Fiber): Fiber => {
+  setCurrentRenderingLanes(SyncLane);
   workLoop(wipRoot);
   commitWork(wipRoot);
+  fiberRoot.root = wipRoot;
+  markContainerAsRoot(wipRoot, fiberRoot.containerDom);
+  setScheduledFiberRoot(fiberRoot);
   flushEffects();
-  return wipRoot;
 };
 
-const flushPendingUpdates = () => {
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+const flushPendingUpdates = (): void => {
   let update = dequeueUpdate();
   while (update) {
     propagateLaneToAncestors(update);
@@ -86,12 +114,9 @@ const flushPendingUpdates = () => {
   }
 };
 
-const propagateLaneToAncestors = (updateQueue: UpdateQueue) => {
+const propagateLaneToAncestors = (updateQueue: UpdateQueue): void => {
   let fiber: Fiber | null = updateQueue.fiber;
   fiber.lanes |= updateQueue.lanes;
-  // Also mark the alternate so that whichever copy is currently
-  // in the live tree (fibers alternate between wip and current
-  // after each render) will have its lanes set.
   if (fiber.alternate) fiber.alternate.lanes |= updateQueue.lanes;
   fiber = fiber.return;
   while (fiber) {

@@ -6,6 +6,11 @@ import {
 import { RectifyDomEventName } from "./RectifyEventName";
 import SyntheticEvent from "./SyntheticEvent";
 import { nativeEventToRectifyName } from "./RectifyEventRegistry";
+import {
+  INPUT_LANE,
+  setEventPriority,
+  resetEventPriority,
+} from "./RectifyEventPriority";
 
 export type AnyNativeEvent = Event | KeyboardEvent | MouseEvent | TouchEvent;
 
@@ -57,7 +62,12 @@ const dispatchEvent = (
     if (!isFunction(handler)) continue;
 
     syntheticEvent.currentTarget = currFiber.stateNode as Element;
-    handler(syntheticEvent);
+    setEventPriority(INPUT_LANE);
+    try {
+      handler(syntheticEvent);
+    } finally {
+      resetEventPriority();
+    }
   }
 
   syntheticEvent.currentTarget = null;

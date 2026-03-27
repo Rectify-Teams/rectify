@@ -1,14 +1,11 @@
 import { createRoot, jsx, useEffect, useState } from "@rectify/core";
 
 const App = () => {
-  console.log("App_component");
   const [list, setList] = useState<{ title: string }[]>([]);
   const [loading, setLoading] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
-
-    await new Promise((resolve) => setTimeout(resolve, 5000)); // Simulate network delay
 
     const res = await fetch("https://jsonplaceholder.typicode.com/posts");
     const data = await res.json();
