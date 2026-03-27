@@ -6,4 +6,6 @@ export { default as useRef } from "./RectifyHookUseRef";
 export type { RefObject } from "./RectifyHookUseRef";
 export { default as useMemo } from "./RectifyHookUseMemo";
 export { default as useCallback } from "./RectifyHookUseCallback";
+export { createContext, useContext, notifyContextConsumers, setMarkFiberDirty, clearContextSubscriptions } from "./RectifyHookContext";
+export type { RectifyContext } from "./RectifyHookContext";
 export { setScheduleRerender } from "./RectifyHookRenderingFiber";

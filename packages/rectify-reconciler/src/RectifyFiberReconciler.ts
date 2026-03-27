@@ -13,6 +13,7 @@ import { workLoop, workLoopOnFiberLanes } from "./RectifyFiberWorkLoop";
 import { commitWork } from "./RectifyFiberCommitWork";
 import {
   setScheduleRerender,
+  setMarkFiberDirty,
   flushEffects,
   flushEffectCleanups,
   flushLayoutEffects,
@@ -29,6 +30,7 @@ import {
   setCurrentEventPriority,
   resetCurrentEventPriority,
   setCurrentRenderingLanes,
+  getCurrentLanePriority,
 } from "./RectifyFiberRenderPriority";
 import {
   scheduleRenderLane,
@@ -94,6 +96,30 @@ setScheduleRerender((fiber: Fiber) => {
   enqueueUpdate({ lanes: lane, fiber, next: null });
   if (!isFlushingLayoutEffects) {
     scheduleRenderLane(lane);
+  }
+});
+
+// Mark a context subscriber's WIP fiber dirty so it fails the bailout and
+// re-renders in the current pass — no second render needed.
+// The subscriber set holds committed (current) fibers; their WIP is .alternate.
+setMarkFiberDirty((fiber: Fiber) => {
+  const lane = getCurrentLanePriority();
+
+  // Mark both current and wip so the lane survives createWorkInProgress copies.
+  fiber.lanes |= lane;
+  const wip = fiber.alternate;
+  if (wip) {
+    wip.lanes |= lane;
+
+    // Bubble childLanes up the WIP tree so workLoopOnFiberLanes descends into
+    // this subtree. We only need to go as far as an ancestor whose childLanes
+    // already includes this lane (it will cover everything above that).
+    let parent = wip.return;
+    while (parent) {
+      if ((parent.childLanes & lane) === lane) break;
+      parent.childLanes |= lane;
+      parent = parent.return;
+    }
   }
 });
 

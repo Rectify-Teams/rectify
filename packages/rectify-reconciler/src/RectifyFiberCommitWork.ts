@@ -1,6 +1,6 @@
 import { applyPropsToDom, precacheFiberNode } from "@rectify/dom-binding";
 import { Fiber } from "@rectify/shared";
-import { runEffectCleanups } from "@rectify/hook";
+import { runEffectCleanups, clearContextSubscriptions } from "@rectify/hook";
 import { NoFlags, MoveFlag, PlacementFlag, UpdateFlag } from "./RectifyFiberFlags";
 import {
   createDomElementFromFiber,
@@ -136,10 +136,11 @@ const commitMutationHostText = (wip: Fiber) => {
 };
 
 const removeHostTree = (fiber: Fiber) => {
-  // Fire effect cleanups before removing from the DOM
+  // Fire effect cleanups and unsubscribe from contexts before removing.
   if (fiber.memoizedState) {
     runEffectCleanups(fiber);
   }
+  clearContextSubscriptions(fiber);
 
   if (fiber.workTag === HostComponent || fiber.workTag === HostText) {
     detachRef(fiber);

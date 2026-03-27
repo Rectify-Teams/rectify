@@ -1,41 +1,102 @@
 import {
+  createContext,
   createRoot,
   jsx,
-  useCallback,
-  useEffect,
-  useLayoutEffect,
+  memo,
+  useContext,
   useMemo,
-  useRef,
   useState,
 } from "@rectify/core";
 
-const Counter = ({ onClick }: { onClick: () => void }) => {
-  console.log("Counter");
-
-  return jsx("div", { children: "Counter", onClick });
+type TCxt = {
+  theme: "light" | "dark";
+  updateValue: (
+    newValue: "light" | "dark" | ((prev: "light" | "dark") => "light" | "dark"),
+  ) => void;
 };
 
-const Content = () => {
-  console.log("Content");
+const ThemeCtx = createContext<TCxt | null>(null);
 
-  const [count, setCount] = useState(0);
+const ThemeProvider = memo((props: { children?: any }) => {
+  console.log("ThemeProvider");
 
-  const handleClick = useCallback(() => setCount((c) => c + 1), []);
+  const [theme, setTheme] = useState<"light" | "dark">("light");
 
+  const value = useMemo(() => ({ theme, updateValue: setTheme }), [theme]);
+
+  return jsx(ThemeCtx.Provider, {
+    value: value,
+    children: props.children,
+  });
+});
+
+const ChildThem = () => {
+  console.log("ChildThem");
+
+  const { theme, updateValue } = useContext(ThemeCtx)!;
+  return jsx("div", {
+    children: theme,
+    onClick: () => updateValue(theme === "light" ? "dark" : "light"),
+  });
+};
+
+const Theme = () => {
+  console.log("Theme");
+  return jsx(ThemeProvider, { children: jsx(ChildThem) });
+};
+
+type Cxt = {
+  value: number;
+  updateValue: (newValue: number | ((prev: number) => number)) => void;
+};
+
+const CounterContext = createContext<Cxt | null>(null);
+
+const Child = () => {
+  console.log("Child");
+
+  const { value } = useContext(CounterContext)!;
   return jsx("div", {
     children: [
-      jsx("h1", { children: `Count: ${count}` }),
-      jsx(Counter, { onClick: handleClick }),
+      jsx("h1", { children: value }),
+      jsx(ThemeProvider, { children: jsx(ChildThem) }),
     ],
   });
 };
 
-const App = () => {
-  console.log("App");
+const Button = () => {
+  console.log("Button");
 
+  const { value, updateValue } = useContext(CounterContext)!;
   return jsx("div", {
-    children: [jsx(Content)],
+    onClick: () => updateValue(value + 1),
+    children: "click",
   });
 };
 
-createRoot(document.getElementById("app")!).render(jsx(App));
+const Hr = () => {
+  console.log("Hr");
+  return jsx("hr");
+};
+
+const App = () => {
+  console.log("App");
+  const [count, setCount] = useState(0);
+
+  const value = useMemo(
+    () => ({ value: count, updateValue: setCount }),
+    [count],
+  );
+
+  return jsx(CounterContext.Provider, {
+    value: value,
+    children: [jsx(Child), jsx(Button), jsx(Hr)],
+  });
+};
+
+const Wrapper = () => {
+  console.log("Wrapper");
+  return jsx(App);
+};
+
+createRoot(document.getElementById("app")!).render(jsx(Wrapper));

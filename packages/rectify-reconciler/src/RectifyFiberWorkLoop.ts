@@ -12,8 +12,10 @@ import {
   FunctionComponent,
   HostComponent,
   HostRoot,
+  ContextProvider,
+  MemoComponent,
 } from "./RectifyFiberWorkTags";
-import { withHooks } from "@rectify/hook";
+import { withHooks, notifyContextConsumers } from "@rectify/hook";
 import { addFlagToFiber, hasPropsChanged } from "./RectifyFiberService";
 import {
   DeletionFlag,
@@ -169,6 +171,25 @@ const cloneChildFibers = (wip: Fiber): Fiber | null => {
 
 const beginWork = (wip: Fiber): Fiber | null => {
   switch (wip.workTag) {
+    case MemoComponent: {
+      const memo = wip.type as any;
+      const render = memo._render;
+      if (!isFunction(render)) break;
+
+      if (wip.alternate !== null && !(wip.lanes & getCurrentLanePriority())) {
+        const compare = memo._compare;
+        const propsEqual = compare
+          ? compare(wip.memoizedProps, wip.pendingProps)
+          : shallowEqual(wip.memoizedProps, wip.pendingProps);
+
+        if (propsEqual) return cloneChildFibers(wip);
+      }
+
+      const ComponentWithHooks = withHooks(wip, render);
+      const children = ComponentWithHooks(wip.pendingProps);
+      reconcileChildren(wip, children);
+      break;
+    }
     case FunctionComponent: {
       const Component = wip.type;
       if (!isFunction(Component)) break;
@@ -193,6 +214,32 @@ const beginWork = (wip: Fiber): Fiber | null => {
     case HostRoot:
     case HostComponent: {
       reconcileChildren(wip, wip.pendingProps?.children);
+      break;
+    }
+    case ContextProvider: {
+      // Bailout: value is unchanged and no own pending work.
+      // Children are cloned so the work loop still descends into them —
+      // each child manages its own bailout independently.
+      if (
+        wip.alternate !== null &&
+        Object.is(wip.alternate.memoizedProps?.value, wip.pendingProps?.value) &&
+        !(wip.lanes & getCurrentLanePriority())
+      ) {
+        return cloneChildFibers(wip);
+      }
+
+      // Reconcile children first so WIP child fibers exist before we mark them.
+      reconcileChildren(wip, wip.pendingProps?.children);
+
+      // When the value changed, mark all subscribers dirty so they fail their
+      // own bailout and re-render in this same pass — no second render needed.
+      if (wip.alternate !== null) {
+        const prevValue = wip.alternate.memoizedProps?.value;
+        const nextValue = wip.pendingProps?.value;
+        if (!Object.is(prevValue, nextValue)) {
+          notifyContextConsumers((wip.type as any)._context);
+        }
+      }
       break;
     }
   }
