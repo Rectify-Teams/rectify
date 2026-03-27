@@ -10,7 +10,7 @@ import {
 import { markContainerAsRoot } from "@rectify/dom-binding";
 import { workLoop, workLoopOnFiberLanes } from "./RectifyFiberWorkLoop";
 import { commitWork } from "./RectifyFiberCommitWork";
-import { setScheduleRerender } from "@rectify/hook";
+import { setScheduleRerender, flushEffects } from "@rectify/hook";
 import {
   dequeueUpdate,
   enqueueUpdate,
@@ -21,28 +21,34 @@ import {
   requestUpdateLane,
 } from "./RectifyFiberRenderPriority";
 
-setScheduleRerender((_fiber: Fiber) => {
-  enqueueUpdate({
-    lanes: requestUpdateLane(),
-    fiber: _fiber,
-    next: null,
-  });
+const scheduleChannel = new MessageChannel();
 
-  if (getSchedulingRenderer()) return;
-  setSchedulingRenderer(true);
-
-  queueMicrotask(() => {
+const initRerenderScheduler = () => {
+  scheduleChannel.port1.onmessage = () => {
     const fiberRoot = getScheduledFiberRoot();
     if (!fiberRoot) return;
-    markLaneToRoot();
+    flushPendingUpdates();
     setScheduledFiberRoot(fiberRoot);
     const renderLanes = getCurrentLanePriority();
     workLoopOnFiberLanes(fiberRoot.root, renderLanes);
-    commitWork(fiberRoot.root);
-    markContainerAsRoot(fiberRoot.root, fiberRoot.containerDom);
+    commitWork(fiberRoot.root);      flushEffects();    markContainerAsRoot(fiberRoot.root, fiberRoot.containerDom);
     setSchedulingRenderer(false);
+  };
+
+  setScheduleRerender((fiber: Fiber) => {
+    enqueueUpdate({
+      lanes: requestUpdateLane(),
+      fiber,
+      next: null,
+    });
+
+    if (getSchedulingRenderer()) return;
+    setSchedulingRenderer(true);
+    scheduleChannel.port2.postMessage(null);
   });
-});
+};
+
+initRerenderScheduler();
 
 export const createContainer = (container: Element): FiberRoot => {
   const fiberRoot = createHostRootFiber(container);
@@ -66,18 +72,19 @@ export const updateContainer = (
 const renderRoot = (wipRoot: Fiber): Fiber => {
   workLoop(wipRoot);
   commitWork(wipRoot);
+  flushEffects();
   return wipRoot;
 };
 
-const markLaneToRoot = () => {
+const flushPendingUpdates = () => {
   let update = dequeueUpdate();
   while (update) {
-    bubbleLaneToRoot(update);
+    propagateLaneToAncestors(update);
     update = dequeueUpdate();
   }
 };
 
-const bubbleLaneToRoot = (updateQueue: UpdateQueue) => {
+const propagateLaneToAncestors = (updateQueue: UpdateQueue) => {
   let fiber: Fiber | null = updateQueue.fiber;
   fiber.lanes |= updateQueue.lanes;
   fiber = fiber.return;

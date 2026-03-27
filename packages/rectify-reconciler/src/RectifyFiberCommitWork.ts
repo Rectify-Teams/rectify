@@ -1,5 +1,6 @@
 import { applyPropsToDom, precacheFiberNode } from "@rectify/dom-binding";
 import { Fiber } from "@rectify/shared";
+import { runEffectCleanups } from "@rectify/hook";
 import { NoFlags, PlacementFlag, UpdateFlag } from "./RectifyFiberFlags";
 import {
   createDomElementFromFiber,
@@ -14,13 +15,13 @@ const MutationMask = PlacementFlag | UpdateFlag;
 
 const commitWork = (finishedWork: Fiber) => {
   if (finishedWork.deletions?.length) {
-    finishedWork.deletions.forEach(commitDeletion);
+    finishedWork.deletions.forEach(removeHostTree);
     finishedWork.deletions = null;
   }
 
   if (finishedWork.flags & MutationMask) {
     commitMutation(finishedWork);
-    completedWork(finishedWork);
+    syncMemoizedProps(finishedWork);
   }
 
   if (finishedWork.subtreeFlags & MutationMask) {
@@ -35,8 +36,15 @@ const commitWork = (finishedWork: Fiber) => {
   finishedWork.subtreeFlags = NoFlags;
 };
 
-const completedWork = (wip: Fiber) => {
+const syncMemoizedProps = (wip: Fiber) => {
   wip.memoizedProps = wip.pendingProps;
+};
+
+const insertIntoParent = (wip: Fiber, node: Node) => {
+  const parentDom = getParentDom(wip);
+  const sibling = getHostSibling(wip) ?? (wip.return ? getHostSibling(wip.return) : null);
+  if (sibling) parentDom.insertBefore(node, sibling);
+  else parentDom.appendChild(node);
 };
 
 const commitMutation = (childFiber: Fiber) => {
@@ -59,16 +67,8 @@ const commitMutationHostComponent = (wip: Fiber) => {
   }
 
   if (hasFlagOnFiber(wip, PlacementFlag)) {
-    const parentDom = getParentDom(wip);
-    const siblingNode =
-      getHostSibling(wip) ?? (wip.return ? getHostSibling(wip.return) : null);
-
-    if (siblingNode) {
-      parentDom.insertBefore(wip.stateNode, siblingNode);
-    } else {
-      parentDom.appendChild(wip.stateNode);
-    }
-    precacheFiberNode(wip, wip.stateNode);
+    insertIntoParent(wip, wip.stateNode!);
+    precacheFiberNode(wip, wip.stateNode!);
     removeFlagFromFiber(wip, PlacementFlag);
   }
 
@@ -87,14 +87,7 @@ const commitMutationHostText = (wip: Fiber) => {
   }
 
   if (hasFlagOnFiber(wip, PlacementFlag)) {
-    const parentDom = getParentDom(wip);
-    const sibling = getHostSibling(wip);
-
-    if (sibling) {
-      parentDom.insertBefore(wip.stateNode!, sibling);
-    } else {
-      parentDom.appendChild(wip.stateNode!);
-    }
+    insertIntoParent(wip, wip.stateNode!);
     precacheFiberNode(wip, wip.stateNode!);
     removeFlagFromFiber(wip, PlacementFlag);
   }
@@ -108,18 +101,19 @@ const commitMutationHostText = (wip: Fiber) => {
   }
 };
 
-const commitDeletion = (fiber: Fiber) => {
-  removeHostNodesFromParent(fiber);
-};
+const removeHostTree = (fiber: Fiber) => {
+  // Fire effect cleanups before removing from the DOM
+  if (fiber.memoizedState) {
+    runEffectCleanups(fiber);
+  }
 
-const removeHostNodesFromParent = (fiber: Fiber) => {
   if (fiber.workTag === HostComponent || fiber.workTag === HostText) {
-    (fiber?.stateNode as Element)?.remove();
+    (fiber.stateNode as Element)?.remove();
   }
 
   let child = fiber.child;
   while (child) {
-    removeHostNodesFromParent(child);
+    removeHostTree(child);
     child = child.sibling;
   }
 };
