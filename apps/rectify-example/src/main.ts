@@ -1,6 +1,7 @@
 import {
   createRoot,
   jsx,
+  useCallback,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -8,33 +9,23 @@ import {
   useState,
 } from "@rectify/core";
 
-const Tooltip = () => {
+const Counter = ({ onClick }: { onClick: () => void }) => {
+  console.log("Counter");
+
+  return jsx("div", { children: "Counter", onClick });
+};
+
+const Content = () => {
+  console.log("Content");
+
   const [count, setCount] = useState(0);
 
-  const ref = useRef<HTMLDivElement>(null);
-
-  const valueAA = useMemo(() => {
-    console.log("valueAA");
-    return "AA";
-  }, []);
-
-  useEffect(() => {
-    console.log("count", count);
-    if (count > 3) setCount(0);
-  }, [count]);
-
-  useLayoutEffect(() => {
-    console.log(ref.current);
-  }, []);
+  const handleClick = useCallback(() => setCount((c) => c + 1), []);
 
   return jsx("div", {
     children: [
-      jsx("div", { children: [`Tooltip count: `, count, valueAA] }),
-      jsx("button", {
-        ref,
-        onClick: () => setCount((p) => p + 1),
-        children: ["click"],
-      }),
+      jsx("h1", { children: `Count: ${count}` }),
+      jsx(Counter, { onClick: handleClick }),
     ],
   });
 };
@@ -43,7 +34,7 @@ const App = () => {
   console.log("App");
 
   return jsx("div", {
-    children: [jsx(Tooltip)],
+    children: [jsx(Content)],
   });
 };
 
