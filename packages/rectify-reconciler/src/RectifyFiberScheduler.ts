@@ -1,4 +1,4 @@
-import { Fiber } from "@rectify/shared";
+import { Fiber } from "@rectify-dev/shared";
 import {
   DefaultLane,
   IdleLane,

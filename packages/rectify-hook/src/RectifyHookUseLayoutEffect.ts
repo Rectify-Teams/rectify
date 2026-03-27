@@ -1,4 +1,4 @@
-import { Fiber, Hook } from "@rectify/shared";
+import { Fiber, Hook } from "@rectify-dev/shared";
 import {
   getFiberRendering,
   getHookIndex,

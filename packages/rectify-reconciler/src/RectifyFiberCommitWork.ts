@@ -1,6 +1,6 @@
-import { applyPropsToDom, precacheFiberNode } from "@rectify/dom-binding";
-import { Fiber } from "@rectify/shared";
-import { runEffectCleanups, clearContextSubscriptions } from "@rectify/hook";
+import { applyPropsToDom, precacheFiberNode } from "@rectify-dev/dom-binding";
+import { Fiber } from "@rectify-dev/shared";
+import { runEffectCleanups, clearContextSubscriptions } from "@rectify-dev/hook";
 import { NoFlags, MoveFlag, PlacementFlag, UpdateFlag } from "./RectifyFiberFlags";
 import {
   createDomElementFromFiber,

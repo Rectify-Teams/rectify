@@ -1,4 +1,4 @@
-import { Hook, isFunction } from "@rectify/shared";
+import { Hook, isFunction } from "@rectify-dev/shared";
 import { StateDispatcher, StateUpdater } from "./RectifyHookTypes";
 import {
   getFiberRendering,

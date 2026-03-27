@@ -1,5 +1,5 @@
 {
-  "name": "@rectify/babel-transform-rectify-jsx",
+  "name": "@rectify-dev/babel-transform-rectify-jsx",
   "version": "2.0.0",
   "license": "MIT",
   "type": "module",

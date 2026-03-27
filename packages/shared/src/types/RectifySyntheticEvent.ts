@@ -1,7 +1,7 @@
 /**
  * Type-level representation of a Rectify synthetic event.
- * The runtime class lives in @rectify/dom-binding; this interface
- * is defined here so @rectify/shared has no upward dependencies.
+ * The runtime class lives in @rectify-dev/dom-binding; this interface
+ * is defined here so @rectify-dev/shared has no upward dependencies.
  */
 export interface SyntheticEvent<N extends Event = Event> {
   /** The DOM element that triggered the event. */

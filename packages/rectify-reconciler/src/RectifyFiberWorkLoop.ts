@@ -7,7 +7,7 @@ import {
   RectifyElement,
   RectifyNode,
   shallowEqual,
-} from "@rectify/shared";
+} from "@rectify-dev/shared";
 import {
   FunctionComponent,
   HostComponent,
@@ -16,7 +16,7 @@ import {
   MemoComponent,
   FragmentComponent,
 } from "./RectifyFiberWorkTags";
-import { withHooks, notifyContextConsumers } from "@rectify/hook";
+import { withHooks, notifyContextConsumers } from "@rectify-dev/hook";
 import { addFlagToFiber, hasPropsChanged } from "./RectifyFiberService";
 import {
   DeletionFlag,

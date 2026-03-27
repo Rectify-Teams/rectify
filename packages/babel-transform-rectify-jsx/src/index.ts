@@ -163,7 +163,7 @@ function buildChildren(
 
 // ─── Auto-import helper ───────────────────────────────────────────────────────
 
-const RECTIFY_CORE = "@rectify/core/jsx-runtime";
+const RECTIFY_CORE = "@rectify-dev/core/jsx-runtime";
 
 function ensureImports(
   path: import("@babel/core").NodePath<import("@babel/types").Program>,

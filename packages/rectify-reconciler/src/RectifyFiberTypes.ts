@@ -1,4 +1,4 @@
-import { Fiber, RectifyNode } from "@rectify/shared";
+import { Fiber, RectifyNode } from "@rectify-dev/shared";
 
 export type FiberRoot = {
   root: Fiber;

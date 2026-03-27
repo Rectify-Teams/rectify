@@ -4,10 +4,10 @@
   "commit": false,
   "fixed": [
     [
-      "@rectify/core",
-      "@rectify/babel-transform-rectify-jsx",
-      "@rectify/vite-plugin",
-      "create-rectify-app"
+      "@rectify-dev/core",
+      "@rectify-dev/babel-transform-rectify-jsx",
+      "@rectify-dev/vite-plugin",
+      "@rectify-dev/create-rectify-app"
     ]
   ],
   "linked": [],

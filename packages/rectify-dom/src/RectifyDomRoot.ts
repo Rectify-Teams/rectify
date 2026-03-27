@@ -2,9 +2,9 @@ import {
   listenToAllEventSupported,
   markContainerAsRoot,
   unmarkContainerAsRoot,
-} from "@rectify/dom-binding";
-import { createContainer, updateContainer } from "@rectify/reconciler";
-import { RectifyNode } from "@rectify/shared";
+} from "@rectify-dev/dom-binding";
+import { createContainer, updateContainer } from "@rectify-dev/reconciler";
+import { RectifyNode } from "@rectify-dev/shared";
 
 type RectifyDomRoot = {
   render: (node: RectifyNode) => void;

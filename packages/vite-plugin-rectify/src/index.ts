@@ -1,6 +1,6 @@
 import type { Plugin } from "vite";
 import babel from "vite-plugin-babel";
-import rectifyBabelTransform from "@rectify/babel-transform-rectify-jsx";
+import rectifyBabelTransform from "@rectify-dev/babel-transform-rectify-jsx";
 
 export interface RectifyPluginOptions {
   /** Glob/regex filter for files to transform. Defaults to /\.[jt]sx$/ */

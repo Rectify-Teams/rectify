@@ -9,7 +9,7 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "@rectify/*": ["src/*"]
+      "@rectify-dev/*": ["src/*"]
     }
   },
   "include": ["src", "*.ts"],

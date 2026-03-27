@@ -1,10 +1,10 @@
 import { RectifyDomEventName } from "./../events/RectifyEventName";
-import { isPlainObject } from "@rectify/shared";
+import { isPlainObject } from "@rectify-dev/shared";
 import {
   getEventHandlerListeners,
   setEventHandlerListeners,
 } from "./RectifyDomComponentTree";
-import { RectifyDOMEventHandleListener } from "@rectify/events/RectifyDomEventTypes";
+import { RectifyDOMEventHandleListener } from "@rectify-dev/events/RectifyDomEventTypes";
 
 const isEvent = (k: string) => k.startsWith("on");
 const isProperty = (k: string) =>

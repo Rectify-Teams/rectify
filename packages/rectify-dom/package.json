@@ -1,13 +1,13 @@
 {
-  "name": "@rectify/dom",
+  "name": "@rectify-dev/dom",
   "version": "1.0.0",
   "license": "MIT",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "dependencies": {
-    "@rectify/shared": "workspace:*",
-    "@rectify/reconciler": "workspace:*",
-    "@rectify/dom-binding": "workspace:*"
+    "@rectify-dev/shared": "workspace:*",
+    "@rectify-dev/reconciler": "workspace:*",
+    "@rectify-dev/dom-binding": "workspace:*"
   },
   "private": true
 }

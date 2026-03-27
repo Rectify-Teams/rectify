@@ -44,8 +44,8 @@ function tplPackageJson(name: string): string {
           preview: "vite preview",
         },
         devDependencies: {
-          "@rectify/core": "latest",
-          "@rectify/vite-plugin": "latest",
+          "@rectify-dev/core": "latest",
+          "@rectify-dev/vite-plugin": "latest",
           typescript: "~5.9.3",
           vite: "latest",
         },
@@ -67,7 +67,7 @@ const tplTsConfig = `{
 
     /* JSX — Rectify mode */
     "jsx": "react-jsx",
-    "jsxImportSource": "@rectify/core",
+    "jsxImportSource": "@rectify-dev/core",
 
     /* Bundler mode */
     "moduleResolution": "bundler",
@@ -89,7 +89,7 @@ const tplTsConfig = `{
 `;
 
 const tplViteConfig = `import { defineConfig } from "vite";
-import rectify from "@rectify/vite-plugin";
+import rectify from "@rectify-dev/vite-plugin";
 
 export default defineConfig({
   plugins: [rectify()],
@@ -112,14 +112,14 @@ function tplIndexHtml(name: string): string {
 `;
 }
 
-const tplMainTsx = `import { createRoot } from "@rectify/core";
+const tplMainTsx = `import { createRoot } from "@rectify-dev/core";
 import { App } from "./App";
 import "./index.css";
 
 createRoot(document.getElementById("app")!).render(<App />);
 `;
 
-const tplAppTsx = `import { useState } from "@rectify/core";
+const tplAppTsx = `import { useState } from "@rectify-dev/core";
 import styles from "./App.module.css";
 
 export function App() {

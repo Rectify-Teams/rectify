@@ -1,5 +1,5 @@
 import { defineConfig } from "vite";
-import rectify from "@rectify/vite-plugin";
+import rectify from "@rectify-dev/vite-plugin";
 
 // https://vite.dev/config/
 export default defineConfig({

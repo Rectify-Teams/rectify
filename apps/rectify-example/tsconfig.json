@@ -7,7 +7,7 @@
     "types": ["vite/client"],
     "skipLibCheck": true,
     "jsx": "react-jsx",
-    "jsxImportSource": "@rectify/core",
+    "jsxImportSource": "@rectify-dev/core",
 
     /* Bundler mode */
     "moduleResolution": "bundler",
