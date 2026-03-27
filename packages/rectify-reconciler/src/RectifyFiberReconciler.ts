@@ -31,8 +31,10 @@ const initRerenderScheduler = () => {
     setScheduledFiberRoot(fiberRoot);
     const renderLanes = getCurrentLanePriority();
     workLoopOnFiberLanes(fiberRoot.root, renderLanes);
-    commitWork(fiberRoot.root);      flushEffects();    markContainerAsRoot(fiberRoot.root, fiberRoot.containerDom);
+    commitWork(fiberRoot.root);
+    markContainerAsRoot(fiberRoot.root, fiberRoot.containerDom);
     setSchedulingRenderer(false);
+    flushEffects();
   };
 
   setScheduleRerender((fiber: Fiber) => {
@@ -87,9 +89,14 @@ const flushPendingUpdates = () => {
 const propagateLaneToAncestors = (updateQueue: UpdateQueue) => {
   let fiber: Fiber | null = updateQueue.fiber;
   fiber.lanes |= updateQueue.lanes;
+  // Also mark the alternate so that whichever copy is currently
+  // in the live tree (fibers alternate between wip and current
+  // after each render) will have its lanes set.
+  if (fiber.alternate) fiber.alternate.lanes |= updateQueue.lanes;
   fiber = fiber.return;
   while (fiber) {
     fiber.childLanes |= updateQueue.lanes;
+    if (fiber.alternate) fiber.alternate.childLanes |= updateQueue.lanes;
     fiber = fiber.return;
   }
 };
