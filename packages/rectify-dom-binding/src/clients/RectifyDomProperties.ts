@@ -7,7 +7,8 @@ import {
 import { RectifyDOMEventHandleListener } from "@rectify/events/RectifyDomEventTypes";
 
 const isEvent = (k: string) => k.startsWith("on");
-const isProperty = (k: string) => k !== "children" && !isEvent(k);
+const isProperty = (k: string) =>
+  k !== "children" && k !== "ref" && !isEvent(k);
 
 function convertStyleObjectToString(styleObj: object) {
   return Object.entries(styleObj)
@@ -40,7 +41,7 @@ export const applyPropsToDom = (
   }
 
   for (const k in nextProps) {
-    if (k === "children") continue;
+    if (k === "children" || k === "ref") continue;
 
     if (isEvent(k)) {
       if (prevProps?.[k] !== nextProps?.[k]) {

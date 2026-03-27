@@ -11,7 +11,7 @@ import {
 } from "./RectifyFiberService";
 import { HostComponent, HostText } from "./RectifyFiberWorkTags";
 
-const MutationMask = PlacementFlag | UpdateFlag;
+const MutationMask = PlacementFlag | UpdateFlag | MoveFlag;
 
 const commitWork = (finishedWork: Fiber) => {
   if (finishedWork.deletions?.length) {
@@ -38,6 +38,22 @@ const commitWork = (finishedWork: Fiber) => {
 
 const syncMemoizedProps = (wip: Fiber) => {
   wip.memoizedProps = wip.pendingProps;
+};
+
+/** Set ref.current = DOM node after the node is placed/updated/moved. */
+const attachRef = (wip: Fiber): void => {
+  const ref = wip.pendingProps?.ref;
+  if (ref && typeof ref === "object" && "current" in ref) {
+    ref.current = wip.stateNode;
+  }
+};
+
+/** Clear ref.current = null when the fiber is removed from the tree. */
+const detachRef = (fiber: Fiber): void => {
+  const ref = fiber.memoizedProps?.ref;
+  if (ref && typeof ref === "object" && "current" in ref) {
+    ref.current = null;
+  }
 };
 
 const insertIntoParent = (wip: Fiber, node: Node) => {
@@ -69,6 +85,7 @@ const commitMutationHostComponent = (wip: Fiber) => {
   if (hasFlagOnFiber(wip, PlacementFlag)) {
     insertIntoParent(wip, wip.stateNode!);
     precacheFiberNode(wip, wip.stateNode!);
+    attachRef(wip);
     removeFlagFromFiber(wip, PlacementFlag);
   }
 
@@ -77,12 +94,14 @@ const commitMutationHostComponent = (wip: Fiber) => {
     (wip.stateNode as Element).remove();
     insertIntoParent(wip, wip.stateNode!);
     precacheFiberNode(wip, wip.stateNode!);
+    attachRef(wip);
     removeFlagFromFiber(wip, MoveFlag);
   }
 
   if (hasFlagOnFiber(wip, UpdateFlag)) {
     applyPropsToDom(wip.stateNode, wip.memoizedProps, wip.pendingProps);
     precacheFiberNode(wip, wip.stateNode!);
+    attachRef(wip);
     removeFlagFromFiber(wip, UpdateFlag);
   }
 };
@@ -123,6 +142,7 @@ const removeHostTree = (fiber: Fiber) => {
   }
 
   if (fiber.workTag === HostComponent || fiber.workTag === HostText) {
+    detachRef(fiber);
     (fiber.stateNode as Element)?.remove();
   }
 
