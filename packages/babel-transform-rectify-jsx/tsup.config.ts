@@ -1,7 +1,7 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: ["src/index.ts", "src/runtime.ts", "src/jsx-runtime.ts"],
+  entry: ["src/index.ts"],
 
   format: ["esm", "cjs"],
   target: "ES2020",
@@ -14,7 +14,6 @@ export default defineConfig({
   dts: true,
   sourcemap: true,
   bundle: true,
-  splitting: true,
 
   treeshake: true,
   minify: false,

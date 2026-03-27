@@ -1,8 +1,6 @@
 import {
   createContext,
   createRoot,
-  Fragment,
-  jsx,
   memo,
   useContext,
   useMemo,
@@ -27,9 +25,7 @@ const ThemeProvider = memo(
     const value = useMemo(() => ({ theme, updateValue: setTheme }), [theme]);
 
     return (
-      <ThemeCtx.Provider value={value}>
-        {props.children}
-      </ThemeCtx.Provider>
+      <ThemeCtx.Provider value={value}>{props.children}</ThemeCtx.Provider>
     );
   },
   () => true,
@@ -40,7 +36,7 @@ const ChildThem = () => {
 
   const { theme, updateValue } = useContext(ThemeCtx)!;
   return (
-    <div onClick={() => updateValue(theme === "light" ? "dark" : "light")}>
+    <div onClick={(e) => updateValue(theme === "light" ? "dark" : "light")}>
       {theme}
     </div>
   );
@@ -78,11 +74,7 @@ const Button = () => {
   console.log("Button");
 
   const { value, updateValue } = useContext(CounterContext)!;
-  return (
-    <div onClick={() => updateValue(value + 1)}>
-      click
-    </div>
-  );
+  return <div onClick={() => updateValue(value + 1)}>click</div>;
 };
 
 const Hr = () => {
