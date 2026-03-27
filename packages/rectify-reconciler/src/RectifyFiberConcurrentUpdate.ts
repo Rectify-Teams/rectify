@@ -46,4 +46,7 @@ const dequeueUpdate = (): UpdateQueue | null => {
   return first;
 };
 
-export { enqueueUpdate, dequeueUpdate };
+/** Returns true when there is at least one pending update in the queue. */
+const hasUpdate = (): boolean => instance.head !== null;
+
+export { enqueueUpdate, dequeueUpdate, hasUpdate };
