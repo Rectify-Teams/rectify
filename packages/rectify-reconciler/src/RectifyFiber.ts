@@ -1,4 +1,4 @@
-import { Fiber, RectifyElement, RectifyKey } from "@rectify/shared";
+import { Fiber, RectifyElement, RectifyKey } from "@rectify-dev/shared";
 import { NoFlags } from "./RectifyFiberFlags";
 import { NoLanes } from "./RectifyFiberLanes";
 import { HostComponent, HostRoot } from "./RectifyFiberWorkTags";

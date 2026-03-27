@@ -1,4 +1,4 @@
-import { createRoot } from "@rectify/core";
+import { createRoot } from "@rectify-dev/core";
 import styles from "./styles.module.css";
 
 const Wrapper = () => {

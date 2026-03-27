@@ -1,10 +1,10 @@
-export { FC } from "@rectify/shared";
-export { createRoot, SyntheticEvent } from "@rectify/dom";
+export { FC } from "@rectify-dev/shared";
+export { createRoot, SyntheticEvent } from "@rectify-dev/dom";
 export { jsx, Fragment } from "./RectifyJsx";
 export { memo } from "./RectifyMemo";
 export type { MemoComponent } from "./RectifyMemo";
-export { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, createContext, useContext } from "@rectify/hook";
-export type { RefObject, RectifyContext } from "@rectify/hook";
+export { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, createContext, useContext } from "@rectify-dev/hook";
+export type { RefObject, RectifyContext } from "@rectify-dev/hook";
 export type {
   CSSProperties,
   HTMLAttributes,
@@ -40,4 +40,4 @@ export type {
   SyntheticClipboardEvent,
   SyntheticAnimationEvent,
   SyntheticTransitionEvent,
-} from "@rectify/shared";
+} from "@rectify-dev/shared";

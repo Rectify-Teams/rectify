@@ -1,4 +1,4 @@
-import { FC } from "@rectify/shared";
+import { FC } from "@rectify-dev/shared";
 
 export type MemoComponent<P = any> = FC<P> & {
   /** Marks this as a memo-wrapped component for the reconciler. */

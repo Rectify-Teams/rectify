@@ -9,7 +9,7 @@ import {
   RECTIFY_TEXT_TYPE,
   RectifyElement,
   shallowEqual,
-} from "@rectify/shared";
+} from "@rectify-dev/shared";
 import {
   FragmentComponent,
   FunctionComponent,

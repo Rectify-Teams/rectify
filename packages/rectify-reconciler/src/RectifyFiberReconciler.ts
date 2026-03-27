@@ -1,4 +1,4 @@
-import { Fiber, RectifyNode } from "@rectify/shared";
+import { Fiber, RectifyNode } from "@rectify-dev/shared";
 import { FiberRoot } from "./RectifyFiberTypes";
 import { createHostRootFiber, createWorkInProgress } from "./RectifyFiber";
 import {
@@ -8,7 +8,7 @@ import {
 import {
   markContainerAsRoot,
   injectEventPriorityCallbacks,
-} from "@rectify/dom-binding";
+} from "@rectify-dev/dom-binding";
 import { workLoop, workLoopOnFiberLanes } from "./RectifyFiberWorkLoop";
 import { commitWork } from "./RectifyFiberCommitWork";
 import {
@@ -18,7 +18,7 @@ import {
   flushEffectCleanups,
   flushLayoutEffects,
   flushLayoutEffectCleanups,
-} from "@rectify/hook";
+} from "@rectify-dev/hook";
 import {
   dequeueUpdate,
   enqueueUpdate,

@@ -1,4 +1,4 @@
-import { Fiber, isFunction } from "@rectify/shared";
+import { Fiber, isFunction } from "@rectify-dev/shared";
 import {
   getEventHandlerListeners,
   getFiberNodeCached,

@@ -3,7 +3,7 @@ import {
   RECTIFY_FRAGMENT_TYPE,
   RectifyElement,
   RectifyJsx,
-} from "@rectify/shared";
+} from "@rectify-dev/shared";
 
 /**
  * Sentinel function that represents a fragment in JSX.

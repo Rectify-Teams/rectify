@@ -1,6 +1,6 @@
-import { RectifyDOMEventHandleListener } from "@rectify/events/RectifyDomEventTypes";
-import { RectifyDomEventName } from "@rectify/events/RectifyEventName";
-import { Fiber } from "@rectify/shared";
+import { RectifyDOMEventHandleListener } from "@rectify-dev/events/RectifyDomEventTypes";
+import { RectifyDomEventName } from "@rectify-dev/events/RectifyEventName";
+import { Fiber } from "@rectify-dev/shared";
 
 const randomKey = Math.random().toString(36).slice(2);
 const internalContainerInstanceKey = "__rectifyContainer$" + randomKey;

@@ -9,8 +9,8 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "@rectify/core": "workspace:*",
-    "@rectify/vite-plugin": "workspace:*",
+    "@rectify-dev/core": "workspace:*",
+    "@rectify-dev/vite-plugin": "workspace:*",
     "typescript": "~5.9.3",
     "vite": "^7.3.1"
   }

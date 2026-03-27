@@ -63,10 +63,10 @@ importers:
 
   apps/rectify-example:
     devDependencies:
-      '@rectify/core':
+      '@rectify-dev/core':
         specifier: workspace:*
         version: link:../../packages/rectify
-      '@rectify/vite-plugin':
+      '@rectify-dev/vite-plugin':
         specifier: workspace:*
         version: link:../../packages/vite-plugin-rectify
       typescript:
@@ -108,13 +108,13 @@ importers:
 
   packages/rectify:
     devDependencies:
-      '@rectify/dom':
+      '@rectify-dev/dom':
         specifier: workspace:*
         version: link:../rectify-dom
-      '@rectify/hook':
+      '@rectify-dev/hook':
         specifier: workspace:*
         version: link:../rectify-hook
-      '@rectify/shared':
+      '@rectify-dev/shared':
         specifier: workspace:*
         version: link:../shared
       tsup:
@@ -126,37 +126,37 @@ importers:
 
   packages/rectify-dom:
     dependencies:
-      '@rectify/dom-binding':
+      '@rectify-dev/dom-binding':
         specifier: workspace:*
         version: link:../rectify-dom-binding
-      '@rectify/reconciler':
+      '@rectify-dev/reconciler':
         specifier: workspace:*
         version: link:../rectify-reconciler
-      '@rectify/shared':
+      '@rectify-dev/shared':
         specifier: workspace:*
         version: link:../shared
 
   packages/rectify-dom-binding:
     dependencies:
-      '@rectify/shared':
+      '@rectify-dev/shared':
         specifier: workspace:*
         version: link:../shared
 
   packages/rectify-hook:
     dependencies:
-      '@rectify/shared':
+      '@rectify-dev/shared':
         specifier: workspace:*
         version: link:../shared
 
   packages/rectify-reconciler:
     dependencies:
-      '@rectify/dom-binding':
+      '@rectify-dev/dom-binding':
         specifier: workspace:*
         version: link:../rectify-dom-binding
-      '@rectify/hook':
+      '@rectify-dev/hook':
         specifier: workspace:*
         version: link:../rectify-hook
-      '@rectify/shared':
+      '@rectify-dev/shared':
         specifier: workspace:*
         version: link:../shared
 
@@ -171,7 +171,7 @@ importers:
       '@babel/core':
         specifier: ^7.29.0
         version: 7.29.0
-      '@rectify/babel-transform-rectify-jsx':
+      '@rectify-dev/babel-transform-rectify-jsx':
         specifier: workspace:*
         version: link:../babel-transform-rectify-jsx
       tsup:

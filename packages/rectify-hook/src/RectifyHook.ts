@@ -1,4 +1,4 @@
-import { FC, Fiber } from "@rectify/shared";
+import { FC, Fiber } from "@rectify-dev/shared";
 import { setFiberRendering, setHookIndex } from "./RectifyHookRenderingFiber";
 
 const prepareToUseHooks = (wip: Fiber) => {
