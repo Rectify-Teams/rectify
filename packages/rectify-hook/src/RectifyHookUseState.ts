@@ -26,6 +26,7 @@ function useState<S>(
     throw new Error("useState must be used within a function component.");
   }
   const hookIndex = getHookIndex();
+  nextHookIndex();
 
   let state: Hook<S | undefined> | null = fiber.memoizedState;
   let prevHook: Hook<S | undefined> | null = null;
@@ -70,7 +71,6 @@ function useState<S>(
     scheduleRerender(fiber);
   };
 
-  nextHookIndex();
   return [state.memoizedState, dispatcher] as const;
 }
 

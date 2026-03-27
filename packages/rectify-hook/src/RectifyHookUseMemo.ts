@@ -25,6 +25,7 @@ function useMemo<T>(factory: () => T, deps: any[]): T {
   }
 
   const hookIndex = getHookIndex();
+  nextHookIndex();
 
   let hook = fiber.memoizedState;
   let prevHook = null;
@@ -37,22 +38,25 @@ function useMemo<T>(factory: () => T, deps: any[]): T {
     // Mount – compute and cache the initial value.
     const state: MemoState<T> = { value: factory(), deps };
     const newHook = { memoizedState: state, queue: null, next: null };
-    if (prevHook) prevHook.next = newHook;
-    else fiber.memoizedState = newHook;
-  } else {
-    // Update – recompute only when deps changed.
-    const prev = hook.memoizedState as MemoState<T>;
-    if (depsChanged(prev.deps, deps)) {
-      const state: MemoState<T> = { value: factory(), deps };
-      hook.memoizedState = state;
+
+    if (prevHook) {
+      prevHook.next = newHook;
+    } else {
+      fiber.memoizedState = newHook;
     }
+
+    return state.value;
   }
 
-  nextHookIndex();
+  // Update – recompute only when deps changed.
+  const prev = hook.memoizedState as MemoState<T>;
+  if (depsChanged(prev.deps, deps)) {
+    const state: MemoState<T> = { value: factory(), deps };
+    hook.memoizedState = state;
+    return state.value;
+  }
 
-  let slot = fiber.memoizedState;
-  for (let i = 0; i < hookIndex; i++) slot = slot!.next;
-  return (slot!.memoizedState as MemoState<T>).value;
+  return prev.value;
 }
 
 export default useMemo;

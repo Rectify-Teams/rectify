@@ -5,12 +5,7 @@ import {
   nextHookIndex,
 } from "./RectifyHookRenderingFiber";
 import { depsChanged } from "./RectifyHookDeps";
-
-type EffectState = {
-  create: () => void | (() => void);
-  deps: any[] | undefined;
-  cleanup: (() => void) | undefined;
-};
+import type { EffectState } from "./RectifyHookTypes";
 
 // Layout effects collected during render, flushed synchronously after commit
 const pendingLayoutEffects: EffectState[] = [];
@@ -42,6 +37,7 @@ function useLayoutEffect(
   }
 
   const hookIndex = getHookIndex();
+  nextHookIndex();
 
   let hook: Hook | null = fiber.memoizedState;
   let prevHook: Hook | null = null;
@@ -54,8 +50,13 @@ function useLayoutEffect(
     // Mount – always schedule the layout effect.
     const effectState: EffectState = { create, deps, cleanup: undefined };
     const newHook: Hook = { memoizedState: effectState, queue: null, next: null };
-    if (prevHook) prevHook.next = newHook;
-    else fiber.memoizedState = newHook;
+
+    if (prevHook) {
+      prevHook.next = newHook;
+    } else {
+      fiber.memoizedState = newHook;
+    }
+
     pendingLayoutEffects.push(effectState);
   } else {
     // Update – only re-run if deps changed.
@@ -67,8 +68,6 @@ function useLayoutEffect(
       pendingLayoutEffects.push(effectState);
     }
   }
-
-  nextHookIndex();
 }
 
 /**

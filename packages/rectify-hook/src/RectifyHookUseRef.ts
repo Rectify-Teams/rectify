@@ -25,8 +25,9 @@ function useRef<T>(initialValue?: T): RefObject<T | undefined> {
   }
 
   const hookIndex = getHookIndex();
+  nextHookIndex();
 
-  // Walk the hook linked list to find (or create) this hook's slot.
+  // Walk the hook linked list to the slot for this hook call.
   let hook = fiber.memoizedState;
   let prevHook = null;
   for (let i = 0; i < hookIndex; i++) {
@@ -35,22 +36,22 @@ function useRef<T>(initialValue?: T): RefObject<T | undefined> {
   }
 
   if (!hook) {
-    // Mount – create the ref object once and store it.
+    // Mount — create the ref object once and attach it to the linked list.
     const ref: RefObject<T | undefined> = { current: initialValue };
     const newHook = { memoizedState: ref, queue: null, next: null };
 
-    if (prevHook) prevHook.next = newHook;
-    else fiber.memoizedState = newHook;
+    if (prevHook) {
+      prevHook.next = newHook;
+    } else {
+      fiber.memoizedState = newHook;
+    }
+
+    return ref;
   }
-  // Update – the same ref object is already in memoizedState; do nothing.
-  // Callers mutate .current directly; that never triggers a re-render.
 
-  nextHookIndex();
-
-  // The hook slot is guaranteed to exist by this point.
-  let slot = fiber.memoizedState;
-  for (let i = 0; i < hookIndex; i++) slot = slot!.next;
-  return slot!.memoizedState as RefObject<T | undefined>;
+  // Update — the ref object already exists; return it unchanged.
+  // Callers mutate .current directly, which never triggers a re-render.
+  return hook.memoizedState as RefObject<T | undefined>;
 }
 
 export default useRef;

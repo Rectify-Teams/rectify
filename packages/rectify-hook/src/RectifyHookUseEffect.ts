@@ -5,12 +5,7 @@ import {
   nextHookIndex,
 } from "./RectifyHookRenderingFiber";
 import { depsChanged } from "./RectifyHookDeps";
-
-type EffectState = {
-  create: () => void | (() => void);
-  deps: any[] | undefined;
-  cleanup: (() => void) | undefined;
-};
+import type { EffectState } from "./RectifyHookTypes";
 
 // Effects collected during render, flushed after commit
 const pendingEffects: EffectState[] = [];
@@ -28,8 +23,8 @@ function useEffect(
   }
 
   const hookIndex = getHookIndex();
+  nextHookIndex();
 
-  // Walk the hook linked list to find (or create) this hook's slot
   let hook: Hook | null = fiber.memoizedState;
   let prevHook: Hook | null = null;
   for (let i = 0; i < hookIndex; i++) {
@@ -38,16 +33,19 @@ function useEffect(
   }
 
   if (!hook) {
-    // Mount – always schedule the effect
+    // Mount – always schedule the effect.
     const effectState: EffectState = { create, deps, cleanup: undefined };
     const newHook: Hook = { memoizedState: effectState, queue: null, next: null };
 
-    if (prevHook) prevHook.next = newHook;
-    else fiber.memoizedState = newHook;
+    if (prevHook) {
+      prevHook.next = newHook;
+    } else {
+      fiber.memoizedState = newHook;
+    }
 
     pendingEffects.push(effectState);
   } else {
-    // Update – only re-run if deps changed
+    // Update – only re-run if deps changed.
     const prev = hook.memoizedState as EffectState;
     if (depsChanged(prev.deps, deps)) {
       // Defer the old cleanup to post-commit (not during render).
@@ -57,8 +55,6 @@ function useEffect(
       pendingEffects.push(effectState);
     }
   }
-
-  nextHookIndex();
 }
 
 /**
