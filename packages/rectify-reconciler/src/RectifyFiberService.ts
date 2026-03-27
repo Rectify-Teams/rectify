@@ -69,21 +69,37 @@ const getParentDom = (fiber: Fiber): Node => {
   throw new Error("No parent DOM found.");
 };
 
+/**
+ * Returns the first host DOM node (HostComponent or HostText) found by a
+ * depth-first pre-order walk of the subtree rooted at `fiber`.
+ * Returns null if the subtree contains no host nodes.
+ */
+function findFirstHostNode(fiber: Fiber): Node | null {
+  if (fiber.workTag === HostComponent || fiber.workTag === HostText) {
+    return fiber.stateNode as Node;
+  }
+
+  let child = fiber.child;
+  while (child) {
+    const found = findFirstHostNode(child);
+    if (found) return found;
+    child = child.sibling;
+  }
+
+  return null;
+}
+
+/**
+ * Finds the nearest host DOM node that this fiber should be inserted before.
+ * Walks the fiber's siblings; for each sibling performs a full depth-first
+ * search so arbitrarily nested FunctionComponent / FragmentComponent wrappers
+ * are transparent.
+ */
 function getHostSibling(fiber: Fiber): Node | null {
   let sibling = fiber.sibling;
   while (sibling) {
-    if (sibling.workTag === FunctionComponent) {
-      let child = sibling.child;
-      while (child) {
-        if (child.workTag === HostComponent || child.workTag === HostText) {
-          return child.stateNode;
-        }
-        child = child.sibling;
-      }
-    }
-    if (sibling.workTag === HostComponent || sibling.workTag === HostText) {
-      return sibling.stateNode;
-    }
+    const node = findFirstHostNode(sibling);
+    if (node) return node;
     sibling = sibling.sibling;
   }
 
