@@ -1,4 +1,4 @@
-export { FC } from "@rectify-dev/shared";
+export type { FC } from "@rectify-dev/shared";
 export { createRoot, SyntheticEvent } from "@rectify-dev/dom";
 export { jsx, Fragment } from "./RectifyJsx";
 export { memo } from "./RectifyMemo";

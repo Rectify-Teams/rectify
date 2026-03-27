@@ -44,7 +44,7 @@ function tplPackageJson(name: string): string {
           preview: "vite preview",
         },
         devDependencies: {
-          "@rectify-dev/core": "^2.0.2",
+          "@rectify-dev/core": "^2.0.3",
           "@rectify-dev/vite-plugin": "latest",
           typescript: "~5.9.3",
           vite: "latest",
@@ -126,12 +126,12 @@ export function App() {
   const [count, setCount] = useState(0);
 
   return (
-    <div class={styles.app}>
-      <h1 class={styles.title}>Hello from Rectify!</h1>
-      <p class={styles.hint}>
+    <div className={styles.app}>
+      <h1 className={styles.title}>Hello from Rectify!</h1>
+      <p className={styles.hint}>
         Edit <code>src/App.tsx</code> to get started.
       </p>
-      <button class={styles.counter} onClick={() => setCount((c) => c + 1)}>
+      <button className={styles.counter} onClick={() => setCount((c) => c + 1)}>
         Count: {count}
       </button>
     </div>
