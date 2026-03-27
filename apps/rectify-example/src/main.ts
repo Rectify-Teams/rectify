@@ -1,33 +1,15 @@
 import { createRoot, jsx, useEffect, useState } from "@rectify/core";
 
 const App = () => {
-  const [list, setList] = useState<{ title: string }[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  const fetchData = async () => {
-    setLoading(true);
-
-    const res = await fetch("https://jsonplaceholder.typicode.com/posts");
-    const data = await res.json();
-    setList(data);
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const [inputValue, setInputValue] = useState("");
 
   return jsx("div", {
-    id: "App_component",
     children: [
-      jsx("h1", { children: "App" }),
-      loading
-        ? jsx("p", { children: "Loading..." })
-        : jsx("ul", {
-            children: list.map((item) =>
-              jsx("li", { key: item.title, children: item.title }),
-            ),
-          }),
+      jsx("input", {
+        value: inputValue,
+        onInput: (e) => setInputValue(e.target.value),
+      }),
+      jsx("p", { children: `You typed: ${inputValue}` }),
     ],
   });
 };

@@ -26,9 +26,8 @@ import {
 import {
   scheduleRenderLane,
   setWorkCallback,
-  setWipRoot,
-  getWipRoot,
-  clearWipRoot,
+  getResumeCursor,
+  clearResumeCursor,
 } from "./RectifyFiberScheduler";
 import { SyncLane } from "./RectifyFiberLanes";
 
@@ -47,22 +46,22 @@ const performWork = (lanes: number): void => {
   const fiberRoot = getScheduledFiberRoot();
   if (!fiberRoot) return;
 
-  // Only flush pending updates when starting fresh (not resuming a yield).
-  if (!getWipRoot()) flushPendingUpdates();
+  // Only flush pending updates when starting a fresh render,
+  // not when resuming a yielded concurrent work loop.
+  if (!getResumeCursor()) flushPendingUpdates();
 
   setCurrentRenderingLanes(lanes);
   const completed = workLoopOnFiberLanes(fiberRoot.root, lanes);
 
   if (!completed) {
-    // Tree is only partially reconciled – store the root so the next
-    // scheduler task for this lane can resume rather than restart.
-    setWipRoot(fiberRoot.root);
-    scheduleRenderLane(lanes); // re-post a task for the same lane
+    // workLoopConcurrent saved the cursor inside RectifyFiberScheduler.
+    // Re-post a task for the same lane so work continues next frame.
+    scheduleRenderLane(lanes);
     return;
   }
 
   // Tree fully reconciled – safe to commit.
-  clearWipRoot();
+  clearResumeCursor();
   commitWork(fiberRoot.root);
   markContainerAsRoot(fiberRoot.root, fiberRoot.containerDom);
   flushEffects();
