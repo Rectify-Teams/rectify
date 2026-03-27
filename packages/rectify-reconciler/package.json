@@ -8,5 +8,6 @@
     "@rectify/shared": "workspace:*",
     "@rectify/hook": "workspace:*",
     "@rectify/dom-binding": "workspace:*"
-  }
+  },
+  "private": true
 }

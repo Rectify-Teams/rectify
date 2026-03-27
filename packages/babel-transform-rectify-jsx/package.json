@@ -1,11 +1,17 @@
 {
   "name": "@rectify/babel-transform-rectify-jsx",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "license": "MIT",
   "type": "module",
-  "main": "./dist/index.cjs",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",

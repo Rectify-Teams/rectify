@@ -15,5 +15,6 @@
       "import": "./src/utilities/index.ts",
       "require": "./src/utilities/index.ts"
     }
-  }
+  },
+  "private": true
 }

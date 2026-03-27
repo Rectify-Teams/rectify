@@ -1,7 +1,8 @@
 {
   "name": "create-rectify-app",
-  "version": "0.1.0",
+  "version": "2.0.0",
   "description": "Scaffold a new Rectify app instantly",
+  "license": "MIT",
   "type": "module",
   "bin": {
     "create-rectify-app": "./dist/index.js"

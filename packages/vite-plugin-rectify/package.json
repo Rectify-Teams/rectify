@@ -1,11 +1,17 @@
 {
   "name": "@rectify/vite-plugin",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "license": "MIT",
   "type": "module",
-  "main": "./dist/index.cjs",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -18,11 +24,11 @@
     "dev": "tsup --watch"
   },
   "dependencies": {
-    "@rectify/babel-transform-rectify-jsx": "workspace:*",
     "vite-plugin-babel": "^1.6.0"
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",
+    "@rectify/babel-transform-rectify-jsx": "workspace:*",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
     "vite": "^7.3.1"
