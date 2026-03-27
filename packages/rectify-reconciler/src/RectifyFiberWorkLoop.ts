@@ -1,12 +1,12 @@
 import {
   createElementFromRectifyNode,
   Fiber,
+  isArray,
   isFunction,
   isValidRectifyElement,
   RectifyElement,
   RectifyNode,
   shallowEqual,
-  toArray,
 } from "@rectify/shared";
 import {
   FunctionComponent,
@@ -14,6 +14,7 @@ import {
   HostRoot,
   ContextProvider,
   MemoComponent,
+  FragmentComponent,
 } from "./RectifyFiberWorkTags";
 import { withHooks, notifyContextConsumers } from "@rectify/hook";
 import { addFlagToFiber, hasPropsChanged } from "./RectifyFiberService";
@@ -253,6 +254,7 @@ const beginWork = (wip: Fiber): Fiber | null => {
       break;
     }
 
+    case FragmentComponent:
     case HostRoot:
     case HostComponent: {
       reconcileChildren(wip, wip.pendingProps?.children);
@@ -485,8 +487,23 @@ const reconcileKeyed = (
 // reconcileChildren
 // ---------------------------------------------------------------------------
 
+/**
+ * Normalise the raw `children` value into a flat array of `RectifyNode` items
+ * ready to be mapped through `createElementFromRectifyNode`.
+ *
+ * Rules:
+ *  - ignorable (null / undefined / boolean) → empty array (render nothing)
+ *  - plain array → use as-is
+ *  - anything else (string, number, RectifyElement) → single-item array
+ */
+const toChildArray = (children: RectifyNode): RectifyNode[] => {
+  if (children == null || typeof children === "boolean") return [];
+  if (isArray(children)) return children as RectifyNode[];
+  return [children as RectifyNode];
+};
+
 const reconcileChildren = (wip: Fiber, children: RectifyNode): void => {
-  const newElements = toArray(children)
+  const newElements = toChildArray(children)
     .map(createElementFromRectifyNode)
     .filter(isValidRectifyElement);
 

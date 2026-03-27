@@ -1,6 +1,7 @@
 import {
   createContext,
   createRoot,
+  Fragment,
   jsx,
   memo,
   useContext,
@@ -96,7 +97,9 @@ const App = () => {
 
 const Wrapper = () => {
   console.log("Wrapper");
-  return jsx(App);
+  return jsx(Fragment, {
+    children: [jsx(App), jsx("h1", { children: "Hello world" })],
+  });
 };
 
 createRoot(document.getElementById("app")!).render(jsx(Wrapper));
