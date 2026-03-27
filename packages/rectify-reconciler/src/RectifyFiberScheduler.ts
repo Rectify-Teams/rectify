@@ -40,24 +40,24 @@ export const setWorkCallback = (cb: WorkCallback): void => {
 };
 
 // ---------------------------------------------------------------------------
-// In-progress WIP root (survives a concurrent yield)
+// Resume cursor – the exact fiber workLoopConcurrent stopped at
 // ---------------------------------------------------------------------------
 
 /**
- * When workLoopConcurrent yields mid-tree this holds the fiber root that was
- * being processed so that the next scheduler task can resume it instead of
- * starting a fresh reconcile.
+ * When workLoopConcurrent yields mid-tree this holds the exact fiber it
+ * stopped at. The next task passes this back so work truly continues from
+ * where it left off rather than restarting from the WIP root.
  */
-let wipRoot: Fiber | null = null;
+let resumeCursor: Fiber | null = null;
 
-export const setWipRoot = (fiber: Fiber | null): void => {
-  wipRoot = fiber;
+export const setResumeCursor = (fiber: Fiber | null): void => {
+  resumeCursor = fiber;
 };
 
-export const getWipRoot = (): Fiber | null => wipRoot;
+export const getResumeCursor = (): Fiber | null => resumeCursor;
 
-export const clearWipRoot = (): void => {
-  wipRoot = null;
+export const clearResumeCursor = (): void => {
+  resumeCursor = null;
 };
 
 // ---------------------------------------------------------------------------

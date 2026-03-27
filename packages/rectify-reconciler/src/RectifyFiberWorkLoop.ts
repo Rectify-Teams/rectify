@@ -25,7 +25,7 @@ import {
   createWorkInProgress,
 } from "./RectifyFiber";
 import { getCurrentLanePriority } from "./RectifyFiberRenderPriority";
-import { shouldYield } from "./RectifyFiberScheduler";
+import { shouldYield, getResumeCursor, setResumeCursor, clearResumeCursor } from "./RectifyFiberScheduler";
 
 const swapCurrentForWip = (current: Fiber, wip: Fiber) => {
   const parent = wip.return;
@@ -63,7 +63,10 @@ export const workLoop = (wipRoot: Fiber) => {
  * will re-post a task to continue with the remaining pending lanes.
  */
 export const workLoopConcurrent = (wipRoot: Fiber): boolean => {
-  let workInProgress: Fiber | null = wipRoot;
+  // Resume from the saved cursor if we yielded on a previous task,
+  // otherwise start fresh from the WIP root.
+  let workInProgress: Fiber | null = getResumeCursor() ?? wipRoot;
+  clearResumeCursor();
 
   while (workInProgress && !shouldYield()) {
     const next = beginWork(workInProgress);
@@ -75,8 +78,13 @@ export const workLoopConcurrent = (wipRoot: Fiber): boolean => {
     }
   }
 
-  // Returns true when the tree was fully processed, false if we yielded early.
-  return workInProgress === null;
+  if (workInProgress !== null) {
+    // Yielded early – save the cursor so the next task resumes here.
+    setResumeCursor(workInProgress);
+    return false;
+  }
+
+  return true;
 };
 
 /**
