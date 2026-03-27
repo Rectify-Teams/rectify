@@ -7,8 +7,10 @@ const App = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    const res = await fetch("https://jsonplaceholder.typicode.com/posts");
+
     await new Promise((resolve) => setTimeout(resolve, 5000)); // Simulate network delay
+
+    const res = await fetch("https://jsonplaceholder.typicode.com/posts");
     const data = await res.json();
     setList(data);
     setLoading(false);
