@@ -1,6 +1,7 @@
 export { withHooks } from "./RectifyHook";
 export { default as useState } from "./RectifyHookUseState";
 export { default as useEffect, flushEffects, flushEffectCleanups, runEffectCleanups } from "./RectifyHookUseEffect";
+export { default as useLayoutEffect, flushLayoutEffects, flushLayoutEffectCleanups, runLayoutEffectCleanups } from "./RectifyHookUseLayoutEffect";
 export { default as useRef } from "./RectifyHookUseRef";
 export type { RefObject } from "./RectifyHookUseRef";
 export { default as useMemo } from "./RectifyHookUseMemo";
