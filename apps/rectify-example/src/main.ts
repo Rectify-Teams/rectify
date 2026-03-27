@@ -12,6 +12,13 @@ const App = () => {
     (inputRef.current as HTMLInputElement | null)?.focus();
   }, []);
 
+  useEffect(() => {
+    console.log("Input value changed:", inputValue);
+    return () => {
+      console.log("Cleaning up after input value change:", inputValue);
+    };
+  }, [inputValue]);
+
   return jsx("div", {
     children: [
       jsx("p", { children: `Renders: ${renderCount.current}` }),

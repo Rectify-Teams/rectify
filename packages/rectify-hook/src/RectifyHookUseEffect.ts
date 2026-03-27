@@ -14,6 +14,9 @@ type EffectState = {
 // Effects collected during render, flushed after commit
 const pendingEffects: EffectState[] = [];
 
+// Cleanups deferred from the render phase – fired before new effects run
+const pendingCleanups: EffectState[] = [];
+
 const depsChanged = (
   prev: any[] | undefined,
   next: any[] | undefined,
@@ -55,7 +58,8 @@ function useEffect(
     // Update – only re-run if deps changed
     const prev = hook.memoizedState as EffectState;
     if (depsChanged(prev.deps, deps)) {
-      prev.cleanup?.();
+      // Defer the old cleanup to post-commit (not during render).
+      pendingCleanups.push(prev);
       const effectState: EffectState = { create, deps, cleanup: undefined };
       hook.memoizedState = effectState;
       pendingEffects.push(effectState);
@@ -64,6 +68,16 @@ function useEffect(
 
   nextHookIndex();
 }
+
+/**
+ * Run cleanups queued during the render phase (dep-changed effects).
+ * Must be called after commit but before flushEffects.
+ */
+export const flushEffectCleanups = (): void => {
+  for (const effect of pendingCleanups.splice(0)) {
+    effect.cleanup?.();
+  }
+};
 
 /** Run all effects collected during the last render. Called after commit. */
 export const flushEffects = (): void => {

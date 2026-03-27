@@ -3,6 +3,7 @@ import {
   Fiber,
   isFunction,
   isValidRectifyElement,
+  RectifyElement,
   RectifyNode,
   toArray,
 } from "@rectify/shared";
@@ -26,7 +27,12 @@ import {
   createWorkInProgress,
 } from "./RectifyFiber";
 import { getCurrentLanePriority } from "./RectifyFiberRenderPriority";
-import { shouldYield, getResumeCursor, setResumeCursor, clearResumeCursor } from "./RectifyFiberScheduler";
+import {
+  shouldYield,
+  getResumeCursor,
+  setResumeCursor,
+  clearResumeCursor,
+} from "./RectifyFiberScheduler";
 
 const swapCurrentForWip = (current: Fiber, wip: Fiber) => {
   const parent = wip.return;
@@ -201,7 +207,7 @@ const bubbleProperties = (wip: Fiber) => {
 /** Reuse an existing fiber or create a fresh one for `element`. */
 const reuseOrCreate = (
   oldFiber: Fiber,
-  element: ReturnType<typeof createElementFromRectifyNode> & object,
+  element: RectifyElement,
   wip: Fiber,
 ): Fiber => {
   const newFiber = createWorkInProgress(oldFiber, element.props);
@@ -213,10 +219,7 @@ const reuseOrCreate = (
 };
 
 /** Create a brand-new fiber for `element` and mark it for placement. */
-const createAndPlace = (
-  element: ReturnType<typeof createElementFromRectifyNode> & object,
-  wip: Fiber,
-): Fiber => {
+const createAndPlace = (element: RectifyElement, wip: Fiber): Fiber => {
   const newFiber = createFiberFromRectifyElement(element);
   // createFiberFromRectifyElement leaves type as null – assign it explicitly.
   newFiber.type = element.type;
