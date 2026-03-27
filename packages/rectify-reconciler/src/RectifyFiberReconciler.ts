@@ -11,7 +11,7 @@ import {
 } from "@rectify/dom-binding";
 import { workLoop, workLoopOnFiberLanes } from "./RectifyFiberWorkLoop";
 import { commitWork } from "./RectifyFiberCommitWork";
-import { setScheduleRerender, flushEffects } from "@rectify/hook";
+import { setScheduleRerender, flushEffects, flushEffectCleanups } from "@rectify/hook";
 import {
   dequeueUpdate,
   enqueueUpdate,
@@ -64,6 +64,7 @@ const performWork = (lanes: number): void => {
   clearResumeCursor();
   commitWork(fiberRoot.root);
   markContainerAsRoot(fiberRoot.root, fiberRoot.containerDom);
+  flushEffectCleanups(); // run old effect cleanups before new effects fire
   flushEffects();
 };
 
@@ -99,6 +100,7 @@ export const updateContainer = (
   fiberRoot.root = wipRoot;
   markContainerAsRoot(wipRoot, fiberRoot.containerDom);
   setScheduledFiberRoot(fiberRoot);
+  flushEffectCleanups();
   flushEffects();
 };
 
