@@ -5,8 +5,15 @@ import {
   RectifyJsx,
 } from "@rectify/shared";
 
+/**
+ * Sentinel function that represents a fragment in JSX.
+ * Never actually called at runtime — `createElement` intercepts it by
+ * identity so `<>` and `<Fragment>` both produce a RECTIFY_FRAGMENT_TYPE element.
+ */
+export const Fragment = (): null => null;
+
 const createElement = (type: any, props?: any): RectifyElement => {
-  if (type === RECTIFY_FRAGMENT_TYPE) {
+  if (type === Fragment) {
     return {
       $$typeof: RECTIFY_FRAGMENT_TYPE,
       type: null,
@@ -25,6 +32,3 @@ const createElement = (type: any, props?: any): RectifyElement => {
 };
 
 export const jsx: RectifyJsx = createElement;
-
-/** Symbol used as the `type` for JSX fragment syntax: `<>...</>` or `<Fragment>`. */
-export const Fragment = RECTIFY_FRAGMENT_TYPE;

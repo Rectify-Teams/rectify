@@ -26,10 +26,11 @@ const ThemeProvider = memo(
 
     const value = useMemo(() => ({ theme, updateValue: setTheme }), [theme]);
 
-    return jsx(ThemeCtx.Provider, {
-      value: value,
-      children: props.children,
-    });
+    return (
+      <ThemeCtx.Provider value={value}>
+        {props.children}
+      </ThemeCtx.Provider>
+    );
   },
   () => true,
 );
@@ -38,15 +39,20 @@ const ChildThem = () => {
   console.log("ChildThem");
 
   const { theme, updateValue } = useContext(ThemeCtx)!;
-  return jsx("div", {
-    children: theme,
-    onClick: () => updateValue(theme === "light" ? "dark" : "light"),
-  });
+  return (
+    <div onClick={() => updateValue(theme === "light" ? "dark" : "light")}>
+      {theme}
+    </div>
+  );
 };
 
 const Theme = () => {
   console.log("Theme");
-  return jsx(ThemeProvider, { children: jsx(ChildThem) });
+  return (
+    <ThemeProvider>
+      <ChildThem />
+    </ThemeProvider>
+  );
 };
 
 type Cxt = {
@@ -60,24 +66,28 @@ const Child = () => {
   console.log("Child");
 
   const { value } = useContext(CounterContext)!;
-  return jsx("div", {
-    children: [jsx("h1", { children: value }), jsx(Theme)],
-  });
+  return (
+    <div>
+      <h1>{value}</h1>
+      <Theme />
+    </div>
+  );
 };
 
 const Button = () => {
   console.log("Button");
 
   const { value, updateValue } = useContext(CounterContext)!;
-  return jsx("div", {
-    onClick: () => updateValue(value + 1),
-    children: "click",
-  });
+  return (
+    <div onClick={() => updateValue(value + 1)}>
+      click
+    </div>
+  );
 };
 
 const Hr = () => {
   console.log("Hr");
-  return jsx("hr");
+  return <hr />;
 };
 
 const App = () => {
@@ -89,17 +99,23 @@ const App = () => {
     [count],
   );
 
-  return jsx(CounterContext.Provider, {
-    value: value,
-    children: [jsx(Child), jsx(Button), jsx(Hr)],
-  });
+  return (
+    <CounterContext.Provider value={value}>
+      <Child />
+      <Button />
+      <Hr />
+    </CounterContext.Provider>
+  );
 };
 
 const Wrapper = () => {
   console.log("Wrapper");
-  return jsx(Fragment, {
-    children: [jsx(App), jsx("h1", { children: "Hello world" })],
-  });
+  return (
+    <>
+      <App />
+      <h1>Hello world</h1>
+    </>
+  );
 };
 
-createRoot(document.getElementById("app")!).render(jsx(Wrapper));
+createRoot(document.getElementById("app")!).render(<Wrapper />);
