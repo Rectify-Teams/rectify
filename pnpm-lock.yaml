@@ -107,6 +107,10 @@ importers:
         version: 5.9.3
 
   packages/rectify:
+    dependencies:
+      '@rectify-dev/shared':
+        specifier: workspace:^2.0.0
+        version: link:../shared
     devDependencies:
       '@rectify-dev/dom':
         specifier: workspace:*
@@ -114,9 +118,6 @@ importers:
       '@rectify-dev/hook':
         specifier: workspace:*
         version: link:../rectify-hook
-      '@rectify-dev/shared':
-        specifier: workspace:*
-        version: link:../shared
       tsup:
         specifier: ^8.5.1
         version: 8.5.1(postcss@8.5.8)(typescript@5.9.3)
@@ -160,7 +161,14 @@ importers:
         specifier: workspace:*
         version: link:../shared
 
-  packages/shared: {}
+  packages/shared:
+    devDependencies:
+      tsup:
+        specifier: ^8.5.1
+        version: 8.5.1(postcss@8.5.8)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
 
   packages/vite-plugin-rectify:
     dependencies:

@@ -1,6 +1,6 @@
 {
   "name": "@rectify-dev/core",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "license": "MIT",
   "type": "module",
   "files": [
@@ -38,10 +38,12 @@
     "build": "tsup",
     "dev": "tsup --watch"
   },
+  "dependencies": {
+    "@rectify-dev/shared": "workspace:^2.0.0"
+  },
   "devDependencies": {
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
-    "@rectify-dev/shared": "workspace:*",
     "@rectify-dev/dom": "workspace:*",
     "@rectify-dev/hook": "workspace:*"
   }
