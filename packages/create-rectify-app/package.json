@@ -1,0 +1,21 @@
+{
+  "name": "create-rectify-app",
+  "version": "0.1.0",
+  "description": "Scaffold a new Rectify app instantly",
+  "type": "module",
+  "bin": {
+    "create-rectify-app": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsup": "^8.5.1",
+    "typescript": "~5.9.3"
+  }
+}
