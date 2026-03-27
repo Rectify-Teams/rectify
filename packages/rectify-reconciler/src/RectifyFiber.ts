@@ -34,9 +34,11 @@ export const createFiber = (
 };
 
 export const createHostRootFiber = (containerDom: Element) => {
+  const root = createFiber(HostRoot, null);
+  root.stateNode = containerDom; // containerDom lives on the fiber, not the global
   return {
     containerDom,
-    root: createFiber(HostRoot, null),
+    root,
     pendingLanes: NoLanes,
     children: null,
   };

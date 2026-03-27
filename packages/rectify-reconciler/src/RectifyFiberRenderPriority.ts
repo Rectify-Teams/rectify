@@ -7,6 +7,8 @@ import { DefaultLane, Lane, Lanes, SyncLane } from "./RectifyFiberLanes";
 let currentEventPriority: Lane = DefaultLane;
 
 export const setCurrentEventPriority = (lane: Lane): void => {
+  console.log("lane", lane);
+
   currentEventPriority = lane;
 };
 

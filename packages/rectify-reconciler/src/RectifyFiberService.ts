@@ -17,7 +17,6 @@ import {
   HostRoot,
   HostText,
 } from "./RectifyFiberWorkTags";
-import { getScheduledFiberRoot } from "./RectifyFiberInstance";
 
 const addFlagToFiber = (fiber: Fiber, flag: number): void => {
   if (hasFlagOnFiber(fiber, flag)) return;
@@ -58,15 +57,12 @@ const createDomElementFromFiber = (fiber: Fiber): Node => {
 
 const getParentDom = (fiber: Fiber): Node => {
   if (fiber.workTag === HostRoot)
-    return getScheduledFiberRoot()?.containerDom as Node;
+    return fiber.stateNode as Node;
 
   let p = fiber.return;
   while (p) {
-    if (p.workTag === HostComponent) {
-      return p.stateNode as Node;
-    }
-    if (p.workTag === HostRoot)
-      return getScheduledFiberRoot()?.containerDom as Node;
+    if (p.workTag === HostComponent) return p.stateNode as Node;
+    if (p.workTag === HostRoot) return p.stateNode as Node;
     p = p.return;
   }
 
