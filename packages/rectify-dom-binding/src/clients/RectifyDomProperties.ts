@@ -4,7 +4,7 @@ import {
   getEventHandlerListeners,
   setEventHandlerListeners,
 } from "./RectifyDomComponentTree";
-import { RectifyDOMEventHandleListener } from "@rectify-dev/events/RectifyDomEventTypes";
+import { RectifyDOMEventHandleListener } from "../events/RectifyDomEventTypes";
 
 const isEvent = (k: string) => k.startsWith("on");
 const isProperty = (k: string) =>
