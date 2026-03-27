@@ -132,7 +132,6 @@ export interface AriaAttributes {
 
 export interface HTMLAttributes extends RectifyEventHandlers, AriaAttributes {
   id?: string;
-  class?: string;
   className?: string;
   name?: string;
   slot?: string;
