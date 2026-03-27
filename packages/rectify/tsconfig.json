@@ -9,7 +9,10 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "@rectify-dev/*": ["src/*"]
+      "@rectify-dev/hook": ["../rectify-hook/src/index.ts"],
+      "@rectify-dev/dom": ["../rectify-dom/src/index.ts"],
+      "@rectify-dev/reconciler": ["../rectify-reconciler/src/index.ts"],
+      "@rectify-dev/dom-binding": ["../rectify-dom-binding/src/index.ts"]
     }
   },
   "include": ["src", "*.ts"],

@@ -1,5 +1,5 @@
-import { RectifyDOMEventHandleListener } from "@rectify-dev/events/RectifyDomEventTypes";
-import { RectifyDomEventName } from "@rectify-dev/events/RectifyEventName";
+import { RectifyDOMEventHandleListener } from "../events/RectifyDomEventTypes";
+import { RectifyDomEventName } from "../events/RectifyEventName";
 import { Fiber } from "@rectify-dev/shared";
 
 const randomKey = Math.random().toString(36).slice(2);

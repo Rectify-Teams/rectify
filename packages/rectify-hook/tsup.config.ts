@@ -1,22 +1,15 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: ["src/index.ts", "src/runtime.ts", "src/jsx-runtime.ts"],
-
+  entry: ["src/index.ts"],
   format: ["esm", "cjs"],
   target: "ES2020",
   outExtension({ format }) {
-    return {
-      js: format === "esm" ? ".js" : ".cjs",
-    };
+    return { js: format === "esm" ? ".js" : ".cjs" };
   },
-
   dts: true,
-  noExternal: ["@rectify-dev/hook", "@rectify-dev/dom", "@rectify-dev/reconciler", "@rectify-dev/dom-binding"],
   sourcemap: true,
   bundle: true,
-  splitting: true,
-
   treeshake: true,
   minify: false,
   keepNames: true,
