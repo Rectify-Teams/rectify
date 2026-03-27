@@ -4,6 +4,7 @@ import {
   getHookIndex,
   nextHookIndex,
 } from "./RectifyHookRenderingFiber";
+import { depsChanged } from "./RectifyHookDeps";
 
 type EffectState = {
   create: () => void | (() => void);
@@ -16,15 +17,6 @@ const pendingEffects: EffectState[] = [];
 
 // Cleanups deferred from the render phase – fired before new effects run
 const pendingCleanups: EffectState[] = [];
-
-const depsChanged = (
-  prev: any[] | undefined,
-  next: any[] | undefined,
-): boolean => {
-  if (!prev || !next) return true;
-  if (prev.length !== next.length) return true;
-  return next.some((dep, i) => !Object.is(dep, prev[i]));
-};
 
 function useEffect(
   create: () => void | (() => void),
