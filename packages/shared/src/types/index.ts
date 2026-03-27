@@ -11,3 +11,43 @@ export {
 } from "./RectifyTypes";
 
 export { type Fiber, type Hook, type UpdateQueue } from "./RectifyFiber";
+
+export {
+  type SyntheticEvent,
+  type SyntheticMouseEvent,
+  type SyntheticKeyboardEvent,
+  type SyntheticFocusEvent,
+  type SyntheticInputEvent,
+  type SyntheticChangeEvent,
+  type SyntheticSubmitEvent,
+  type SyntheticWheelEvent,
+  type SyntheticPointerEvent,
+  type SyntheticTouchEvent,
+  type SyntheticDragEvent,
+  type SyntheticClipboardEvent,
+  type SyntheticAnimationEvent,
+  type SyntheticTransitionEvent,
+} from "./RectifySyntheticEvent";
+
+export {
+  type CSSProperties,
+  type RectifyEventHandlers,
+  type AriaAttributes,
+  type HTMLAttributes,
+  type RectifyIntrinsicElements,
+  type AnchorHTMLAttributes,
+  type ButtonHTMLAttributes,
+  type InputHTMLAttributes,
+  type TextareaHTMLAttributes,
+  type SelectHTMLAttributes,
+  type OptionHTMLAttributes,
+  type OptGroupHTMLAttributes,
+  type FormHTMLAttributes,
+  type ImgHTMLAttributes,
+  type LabelHTMLAttributes,
+  type MetaHTMLAttributes,
+  type ScriptHTMLAttributes,
+  type VideoHTMLAttributes,
+  type AudioHTMLAttributes,
+  type IframeHTMLAttributes,
+} from "./RectifyJsxTypes";

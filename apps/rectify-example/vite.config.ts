@@ -1,24 +1,10 @@
 import { defineConfig } from "vite";
-import babel from "vite-plugin-babel";
+import rectify from "@rectify/vite-plugin";
 
 // https://vite.dev/config/
 export default defineConfig({
+  plugins: [rectify()],
   server: {
     port: 5174,
   },
-  plugins: [
-    babel({
-      babelConfig: {
-        plugins: [
-          [
-            "@babel/plugin-transform-react-jsx",
-            {
-              pragma: "jsx",
-              pragmaFrag: "Fragment",
-            },
-          ],
-        ],
-      },
-    }),
-  ],
 });

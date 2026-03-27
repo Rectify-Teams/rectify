@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "paths": {
+      "@rectify/babel-transform-rectify-jsx": ["../babel-transform-rectify-jsx/src/index.ts"]
+    }
+  },
+  "include": ["src"]
+}
