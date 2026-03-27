@@ -40,12 +40,7 @@ export const createElementFromRectifyNode = (
   }
 
   if (isRectifyIgnorable(node)) {
-    return {
-      $$typeof: RECTIFY_FRAGMENT_TYPE,
-      key: null,
-      type: null,
-      props: node,
-    };
+    return null;
   }
   return null;
 };

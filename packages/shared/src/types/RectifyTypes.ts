@@ -7,6 +7,7 @@ export type RectifyFunctionalComponent<P = any> = (props: P) => RectifyNode;
 
 export type RectifyTypeJsx<P = any> =
   | string
+  | symbol
   | RectifyFunctionalComponent<P>
   | null;
 
