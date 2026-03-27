@@ -1,4 +1,4 @@
-import { createRoot, jsx, useEffect, useState } from "@rectify/core";
+import { createRoot, jsx, useState } from "@rectify/core";
 
 const App = () => {
   const [inputValue, setInputValue] = useState("");
@@ -9,7 +9,7 @@ const App = () => {
         value: inputValue,
         onInput: (e) => setInputValue(e.target.value),
       }),
-      jsx("p", { children: `You typed: ${inputValue}` }),
+      jsx("p", { children: [`You typed: `, inputValue] }),
     ],
   });
 };

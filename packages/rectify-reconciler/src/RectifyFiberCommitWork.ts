@@ -1,7 +1,7 @@
 import { applyPropsToDom, precacheFiberNode } from "@rectify/dom-binding";
 import { Fiber } from "@rectify/shared";
 import { runEffectCleanups } from "@rectify/hook";
-import { NoFlags, PlacementFlag, UpdateFlag } from "./RectifyFiberFlags";
+import { NoFlags, MoveFlag, PlacementFlag, UpdateFlag } from "./RectifyFiberFlags";
 import {
   createDomElementFromFiber,
   hasFlagOnFiber,
@@ -72,6 +72,14 @@ const commitMutationHostComponent = (wip: Fiber) => {
     removeFlagFromFiber(wip, PlacementFlag);
   }
 
+  if (hasFlagOnFiber(wip, MoveFlag)) {
+    // Node already exists in the DOM but at the wrong position – re-insert.
+    (wip.stateNode as Element).remove();
+    insertIntoParent(wip, wip.stateNode!);
+    precacheFiberNode(wip, wip.stateNode!);
+    removeFlagFromFiber(wip, MoveFlag);
+  }
+
   if (hasFlagOnFiber(wip, UpdateFlag)) {
     applyPropsToDom(wip.stateNode, wip.memoizedProps, wip.pendingProps);
     precacheFiberNode(wip, wip.stateNode!);
@@ -90,6 +98,13 @@ const commitMutationHostText = (wip: Fiber) => {
     insertIntoParent(wip, wip.stateNode!);
     precacheFiberNode(wip, wip.stateNode!);
     removeFlagFromFiber(wip, PlacementFlag);
+  }
+
+  if (hasFlagOnFiber(wip, MoveFlag)) {
+    (wip.stateNode as Text).remove();
+    insertIntoParent(wip, wip.stateNode!);
+    precacheFiberNode(wip, wip.stateNode!);
+    removeFlagFromFiber(wip, MoveFlag);
   }
 
   if (hasFlagOnFiber(wip, UpdateFlag)) {

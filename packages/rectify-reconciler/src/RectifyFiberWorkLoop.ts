@@ -15,6 +15,7 @@ import { withHooks } from "@rectify/hook";
 import { addFlagToFiber, hasPropsChanged } from "./RectifyFiberService";
 import {
   DeletionFlag,
+  MoveFlag,
   NoFlags,
   PlacementFlag,
   UpdateFlag,
@@ -193,61 +194,140 @@ const bubbleProperties = (wip: Fiber) => {
   wip.childLanes = childLanes;
 };
 
+// ---------------------------------------------------------------------------
+// reconcileChildren helpers
+// ---------------------------------------------------------------------------
+
+/** Reuse an existing fiber or create a fresh one for `element`. */
+const reuseOrCreate = (
+  oldFiber: Fiber,
+  element: ReturnType<typeof createElementFromRectifyNode> & object,
+  wip: Fiber,
+): Fiber => {
+  const newFiber = createWorkInProgress(oldFiber, element.props);
+  if (hasPropsChanged(oldFiber.memoizedProps, element.props)) {
+    addFlagToFiber(newFiber, UpdateFlag);
+  }
+  newFiber.return = wip;
+  return newFiber;
+};
+
+/** Create a brand-new fiber for `element` and mark it for placement. */
+const createAndPlace = (
+  element: ReturnType<typeof createElementFromRectifyNode> & object,
+  wip: Fiber,
+): Fiber => {
+  const newFiber = createFiberFromRectifyElement(element);
+  // createFiberFromRectifyElement leaves type as null – assign it explicitly.
+  newFiber.type = element.type;
+  addFlagToFiber(newFiber, PlacementFlag);
+  newFiber.return = wip;
+  return newFiber;
+};
+
 const reconcileChildren = (wip: Fiber, children: RectifyNode) => {
+  const newElements = toArray(children)
+    .map(createElementFromRectifyNode)
+    .filter(isValidRectifyElement);
+
   const deletions: Fiber[] = [];
-
   let index = 0;
-  let oldFiber = wip.alternate?.child ?? null;
-  let prevNewFiber: Fiber | null = null;
 
-  for (const child of toArray(children)) {
-    const element = createElementFromRectifyNode(child);
-    if (!isValidRectifyElement(element)) continue;
+  // Appends `fiber` to the new child list and advances the prev pointer.
+  const append = (fiber: Fiber, prev: Fiber | null): Fiber => {
+    fiber.index = index++;
+    if (!prev) wip.child = fiber;
+    else prev.sibling = fiber;
+    return fiber;
+  };
 
+  // ------------------------------------------------------------------
+  // Pass 1 – left-to-right index scan (fast path, no reordering)
+  // Stops as soon as the keys diverge.
+  // ------------------------------------------------------------------
+  let oldFiber: Fiber | null = wip.alternate?.child ?? null;
+  let pass1Stopped = 0;
+  let prev: Fiber | null = null;
+
+  for (; pass1Stopped < newElements.length; pass1Stopped++) {
+    const element = newElements[pass1Stopped];
     const { key: elementKey = null, type: elementType } = element;
 
-    const canReuse =
-      oldFiber &&
-      oldFiber.key === elementKey &&
-      oldFiber.type === elementType;
+    if (!oldFiber) break; // old list exhausted
+    if (oldFiber.key !== elementKey) break; // keys diverged → reorder
 
-    let newFiber: Fiber;
-
-    if (canReuse) {
-      newFiber = createWorkInProgress(oldFiber!, element.props);
-      if (hasPropsChanged(oldFiber!.memoizedProps, element.props)) {
-        addFlagToFiber(newFiber, UpdateFlag);
-      }
+    if (oldFiber.type === elementType) {
+      prev = append(reuseOrCreate(oldFiber, element, wip), prev);
     } else {
-      newFiber = createFiberFromRectifyElement(element);
-      addFlagToFiber(newFiber, PlacementFlag);
-
-      if (oldFiber) {
-        addFlagToFiber(oldFiber, DeletionFlag);
-        deletions.push(oldFiber);
-      }
+      // Same key but different type → delete old, create new
+      addFlagToFiber(oldFiber, DeletionFlag);
+      deletions.push(oldFiber);
+      prev = append(createAndPlace(element, wip), prev);
     }
 
-    newFiber.return = wip;
-    newFiber.index = index++;
-    newFiber.key = elementKey;
-    newFiber.type = elementType;
-
-    if (!prevNewFiber) wip.child = newFiber;
-    else prevNewFiber.sibling = newFiber;
-
-    prevNewFiber = newFiber;
-    oldFiber = oldFiber?.sibling ?? null;
-  }
-
-  // Any remaining old fibers have no counterpart in the new children → delete
-  while (oldFiber) {
-    addFlagToFiber(oldFiber, DeletionFlag);
-    deletions.push(oldFiber);
     oldFiber = oldFiber.sibling;
   }
 
-  if (deletions.length) {
-    wip.deletions = deletions;
+  // ------------------------------------------------------------------
+  // Pass 2 – key-map lookup (handles reordering / insertions / removals)
+  // Only runs when pass 1 didn't consume every element.
+  // ------------------------------------------------------------------
+  if (pass1Stopped < newElements.length) {
+    // Build a map from key (or fallback index) → old fiber for all
+    // remaining old fibers that pass 1 didn't consume.
+    const oldFiberMap = new Map<string | number, Fiber>();
+    let remaining: Fiber | null = oldFiber;
+    let remainingIdx = pass1Stopped;
+    while (remaining) {
+      const mapKey: string | number = remaining.key ?? remainingIdx;
+      oldFiberMap.set(mapKey, remaining);
+      remaining = remaining.sibling;
+      remainingIdx++;
+    }
+
+    // Track the highest old index we've seen to detect moves.
+    // Any reused fiber whose old index < lastPlacedIndex needs re-insertion.
+    let lastPlacedIndex = 0;
+
+    for (let i = pass1Stopped; i < newElements.length; i++) {
+      const element = newElements[i];
+      const { key: elementKey = null, type: elementType } = element;
+      const mapKey: string | number = elementKey ?? i;
+      const matched = oldFiberMap.get(mapKey) ?? null;
+
+      if (matched && matched.type === elementType) {
+        oldFiberMap.delete(mapKey);
+        const newFiber = reuseOrCreate(matched, element, wip);
+
+        if (matched.index < lastPlacedIndex) {
+          // Moved to the right – needs re-insertion in the DOM.
+          addFlagToFiber(newFiber, MoveFlag);
+        } else {
+          lastPlacedIndex = matched.index;
+        }
+
+        prev = append(newFiber, prev);
+      } else {
+        prev = append(createAndPlace(element, wip), prev);
+      }
+    }
+
+    // Old fibers still in the map have no counterpart → delete.
+    for (const orphan of oldFiberMap.values()) {
+      addFlagToFiber(orphan, DeletionFlag);
+      deletions.push(orphan);
+    }
+  } else {
+    // Pass 1 consumed all new elements; delete leftover old fibers.
+    while (oldFiber) {
+      addFlagToFiber(oldFiber, DeletionFlag);
+      deletions.push(oldFiber);
+      oldFiber = oldFiber.sibling;
+    }
   }
+
+  // Terminate the new sibling chain.
+  if (prev) prev.sibling = null;
+
+  if (deletions.length) wip.deletions = deletions;
 };
