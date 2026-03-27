@@ -6,5 +6,6 @@
   "types": "./src/index.ts",
   "dependencies": {
     "@rectify/shared": "workspace:*"
-  }
+  },
+  "private": true
 }

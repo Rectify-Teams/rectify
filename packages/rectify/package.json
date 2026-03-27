@@ -1,10 +1,17 @@
 {
   "name": "@rectify/core",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "license": "MIT",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
