@@ -1,15 +1,26 @@
-import { createRoot, jsx, useState } from "@rectify/core";
+import { createRoot, jsx, useEffect, useRef, useState } from "@rectify/core";
 
 const App = () => {
   const [inputValue, setInputValue] = useState("");
+  // useRef for a DOM node – focus the input on mount
+  const inputRef = useRef<HTMLInputElement>(null);
+  // useRef for a mutable value – track render count without re-rendering
+  const renderCount = useRef(0);
+  renderCount.current += 1;
+
+  useEffect(() => {
+    (inputRef.current as HTMLInputElement | null)?.focus();
+  }, []);
 
   return jsx("div", {
     children: [
+      jsx("p", { children: `Renders: ${renderCount.current}` }),
       jsx("input", {
+        ref: inputRef,
         value: inputValue,
-        onInput: (e) => setInputValue(e.target.value),
+        onInput: (e: any) => setInputValue(e.target.value),
       }),
-      jsx("p", { children: [`You typed: `, inputValue] }),
+      jsx("p", { children: `You typed: ${inputValue}` }),
     ],
   });
 };
