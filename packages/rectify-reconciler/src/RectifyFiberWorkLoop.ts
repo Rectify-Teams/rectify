@@ -5,6 +5,7 @@ import {
   isValidRectifyElement,
   RectifyElement,
   RectifyNode,
+  shallowEqual,
   toArray,
 } from "@rectify/shared";
 import {
@@ -131,11 +132,59 @@ export const workLoopOnFiberLanes = (
   return true;
 };
 
+/**
+ * Bailout helper: re-links the current tree's children as WIP nodes under
+ * `wip` without calling the component function.  Each cloned child will be
+ * visited by the work loop and may itself bail out or re-render depending on
+ * its own pending lanes.
+ */
+const cloneChildFibers = (wip: Fiber): Fiber | null => {
+  const currentChild = wip.alternate?.child ?? null;
+  if (!currentChild) {
+    wip.child = null;
+    return null;
+  }
+
+  let oldChild: Fiber | null = currentChild;
+  let prevNewChild: Fiber | null = null;
+
+  while (oldChild) {
+    const newChild = createWorkInProgress(oldChild, oldChild.pendingProps);
+    newChild.return = wip;
+
+    if (!prevNewChild) {
+      wip.child = newChild;
+    } else {
+      prevNewChild.sibling = newChild;
+    }
+
+    prevNewChild = newChild;
+    oldChild = oldChild.sibling;
+  }
+
+  if (prevNewChild) prevNewChild.sibling = null;
+
+  return wip.child;
+};
+
 const beginWork = (wip: Fiber): Fiber | null => {
   switch (wip.workTag) {
     case FunctionComponent: {
       const Component = wip.type;
       if (!isFunction(Component)) break;
+
+      // Bailout: existing fiber, all props (including children) unchanged,
+      // and no own pending state update for this render.
+      // Clone the current children so the work loop can still descend into
+      // any grandchildren that do have pending work.
+      if (
+        wip.alternate !== null &&
+        shallowEqual(wip.memoizedProps, wip.pendingProps) &&
+        !(wip.lanes & getCurrentLanePriority())
+      ) {
+        return cloneChildFibers(wip);
+      }
+
       const ComponentWithHooks = withHooks(wip, Component);
       const children = ComponentWithHooks(wip.pendingProps);
       reconcileChildren(wip, children);
