@@ -16,6 +16,8 @@ import {
   HostComponent,
   HostRoot,
   HostText,
+  ContextProvider,
+  MemoComponent,
 } from "./RectifyFiberWorkTags";
 
 const addFlagToFiber = (fiber: Fiber, flag: number): void => {
@@ -36,6 +38,12 @@ const hasFlagOnFiber = (fiber: Fiber | null, flag: number): boolean => {
 const getFiberTagFromElement = (element: RectifyElement) => {
   switch (element.$$typeof) {
     case RECTIFY_ELEMENT_TYPE:
+      if (isFunction(element.type) && (element.type as any)?._context === element.type) {
+        return ContextProvider;
+      }
+      if (isFunction(element.type) && (element.type as any)?._isMemo === true) {
+        return MemoComponent;
+      }
       return isFunction(element.type) ? FunctionComponent : HostComponent;
     case RECTIFY_TEXT_TYPE:
       return HostText;
@@ -108,10 +116,11 @@ function getHostSibling(fiber: Fiber): Node | null {
 
 const hasPropsChanged = (prevProps: any, nextProps: any) => {
   const CHILDREN_KEY = "children";
+  const REF_KEY = "ref";
   if (isPlainObject(prevProps) && isPlainObject(nextProps)) {
     return !shallowEqual(
-      omit(prevProps, [CHILDREN_KEY]),
-      omit(nextProps, [CHILDREN_KEY]),
+      omit(prevProps, [CHILDREN_KEY, REF_KEY]),
+      omit(nextProps, [CHILDREN_KEY, REF_KEY]),
     );
   }
 
