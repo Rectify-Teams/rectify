@@ -37,6 +37,23 @@ import {
   clearResumeCursor,
 } from "./RectifyFiberScheduler";
 
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+/** Mutable state threaded through the reconcileChildren pass functions. */
+type ReconcileState = {
+  wip: Fiber;
+  newElements: RectifyElement[];
+  deletions: Fiber[];
+  prev: Fiber | null;
+  index: number;
+};
+
+// ---------------------------------------------------------------------------
+// Implementation
+// ---------------------------------------------------------------------------
+
 const swapCurrentForWip = (current: Fiber, wip: Fiber) => {
   const parent = wip.return;
   if (!parent) return;
@@ -169,6 +186,35 @@ const cloneChildFibers = (wip: Fiber): Fiber | null => {
   return wip.child;
 };
 
+// ---------------------------------------------------------------------------
+// beginWork helpers
+// ---------------------------------------------------------------------------
+
+/** Returns true when this fiber has no own pending work in the current pass. */
+const hasNoPendingWork = (wip: Fiber): boolean =>
+  !(wip.lanes & getCurrentLanePriority());
+
+/** Returns true when this is an update (not a mount). */
+const isUpdate = (wip: Fiber): boolean => wip.alternate !== null;
+
+/**
+ * Runs a function component (or memo-wrapped component) through hooks,
+ * then reconciles the output into children.
+ */
+const renderFunctionComponent = (wip: Fiber, Component: Function): void => {
+  const ComponentWithHooks = withHooks(wip, Component as any);
+  const children = ComponentWithHooks(wip.pendingProps);
+  reconcileChildren(wip, children);
+};
+
+/** Reads the context object off a ContextProvider fiber's type. */
+const getProviderContext = (wip: Fiber) =>
+  (wip.type as unknown as { _context: any })._context;
+
+// ---------------------------------------------------------------------------
+// beginWork
+// ---------------------------------------------------------------------------
+
 const beginWork = (wip: Fiber): Fiber | null => {
   switch (wip.workTag) {
     case MemoComponent: {
@@ -176,68 +222,64 @@ const beginWork = (wip: Fiber): Fiber | null => {
       const render = memo._render;
       if (!isFunction(render)) break;
 
-      if (wip.alternate !== null && !(wip.lanes & getCurrentLanePriority())) {
-        const compare = memo._compare;
-        const propsEqual = compare
-          ? compare(wip.memoizedProps, wip.pendingProps)
+      // Bailout: use custom comparator when provided, fall back to shallowEqual.
+      if (isUpdate(wip) && hasNoPendingWork(wip)) {
+        const equal = memo._compare
+          ? memo._compare(wip.memoizedProps, wip.pendingProps)
           : shallowEqual(wip.memoizedProps, wip.pendingProps);
-
-        if (propsEqual) return cloneChildFibers(wip);
+        if (equal) return cloneChildFibers(wip);
       }
 
-      const ComponentWithHooks = withHooks(wip, render);
-      const children = ComponentWithHooks(wip.pendingProps);
-      reconcileChildren(wip, children);
+      renderFunctionComponent(wip, render);
       break;
     }
+
     case FunctionComponent: {
       const Component = wip.type;
       if (!isFunction(Component)) break;
 
-      // Bailout: existing fiber, all props (including children) unchanged,
-      // and no own pending state update for this render.
-      // Clone the current children so the work loop can still descend into
-      // any grandchildren that do have pending work.
+      // Bailout: props unchanged and no own pending state update.
+      // Cloned children let the work loop still descend into any grandchild
+      // that does have pending work.
       if (
-        wip.alternate !== null &&
-        shallowEqual(wip.memoizedProps, wip.pendingProps) &&
-        !(wip.lanes & getCurrentLanePriority())
+        isUpdate(wip) &&
+        hasNoPendingWork(wip) &&
+        shallowEqual(wip.memoizedProps, wip.pendingProps)
       ) {
         return cloneChildFibers(wip);
       }
 
-      const ComponentWithHooks = withHooks(wip, Component);
-      const children = ComponentWithHooks(wip.pendingProps);
-      reconcileChildren(wip, children);
+      renderFunctionComponent(wip, Component as Function);
       break;
     }
+
     case HostRoot:
     case HostComponent: {
       reconcileChildren(wip, wip.pendingProps?.children);
       break;
     }
+
     case ContextProvider: {
-      // Bailout: value is unchanged and no own pending work.
+      // Bailout: value unchanged and no own pending work.
       // Children are cloned so the work loop still descends into them —
       // each child manages its own bailout independently.
       if (
-        wip.alternate !== null &&
-        Object.is(wip.alternate.memoizedProps?.value, wip.pendingProps?.value) &&
-        !(wip.lanes & getCurrentLanePriority())
+        isUpdate(wip) &&
+        hasNoPendingWork(wip) &&
+        Object.is(wip.alternate!.memoizedProps?.value, wip.pendingProps?.value)
       ) {
         return cloneChildFibers(wip);
       }
 
-      // Reconcile children first so WIP child fibers exist before we mark them.
+      // Reconcile first so WIP child fibers exist before we mark subscribers.
       reconcileChildren(wip, wip.pendingProps?.children);
 
-      // When the value changed, mark all subscribers dirty so they fail their
-      // own bailout and re-render in this same pass — no second render needed.
-      if (wip.alternate !== null) {
-        const prevValue = wip.alternate.memoizedProps?.value;
+      // Notify subscribers when value changed so they re-render in this pass.
+      if (isUpdate(wip)) {
+        const prevValue = wip.alternate!.memoizedProps?.value;
         const nextValue = wip.pendingProps?.value;
         if (!Object.is(prevValue, nextValue)) {
-          notifyContextConsumers((wip.type as any)._context);
+          notifyContextConsumers(getProviderContext(wip));
         }
       }
       break;
@@ -297,15 +339,11 @@ const bubbleProperties = (wip: Fiber) => {
 };
 
 // ---------------------------------------------------------------------------
-// reconcileChildren helpers
+// reconcileChildren — helpers
 // ---------------------------------------------------------------------------
 
-/** Reuse an existing fiber or create a fresh one for `element`. */
-const reuseOrCreate = (
-  oldFiber: Fiber,
-  element: RectifyElement,
-  wip: Fiber,
-): Fiber => {
+/** Reuse an existing fiber, marking it for update if its props changed. */
+const reuseOrCreate = (oldFiber: Fiber, element: RectifyElement, wip: Fiber): Fiber => {
   const newFiber = createWorkInProgress(oldFiber, element.props);
   if (hasPropsChanged(oldFiber.memoizedProps, element.props)) {
     addFlagToFiber(newFiber, UpdateFlag);
@@ -314,119 +352,162 @@ const reuseOrCreate = (
   return newFiber;
 };
 
-/** Create a brand-new fiber for `element` and mark it for placement. */
+/** Create a brand-new fiber for `element` and mark it for DOM placement. */
 const createAndPlace = (element: RectifyElement, wip: Fiber): Fiber => {
   const newFiber = createFiberFromRectifyElement(element);
-  // createFiberFromRectifyElement leaves type as null – assign it explicitly.
-  newFiber.type = element.type;
+  newFiber.type = element.type; // createFiberFromRectifyElement leaves type null
   addFlagToFiber(newFiber, PlacementFlag);
   newFiber.return = wip;
   return newFiber;
 };
 
-const reconcileChildren = (wip: Fiber, children: RectifyNode) => {
-  const newElements = toArray(children)
-    .map(createElementFromRectifyNode)
-    .filter(isValidRectifyElement);
+/**
+ * Append `fiber` to the WIP child list at `index` and return it.
+ * `prev` is the previously appended sibling (null for the first child).
+ */
+const appendFiber = (
+  fiber: Fiber,
+  prev: Fiber | null,
+  index: number,
+  wip: Fiber,
+): Fiber => {
+  fiber.index = index;
+  if (!prev) wip.child = fiber;
+  else prev.sibling = fiber;
+  return fiber;
+};
 
-  const deletions: Fiber[] = [];
-  let index = 0;
+/**
+ * Build a key→fiber map from the remaining unconsumed old fibers so
+ * reconcileKeyed can do O(1) lookups. Keys fall back to positional index when absent.
+ */
+const buildOldFiberMap = (
+  firstRemaining: Fiber | null,
+  startIndex: number,
+): Map<string | number, Fiber> => {
+  const map = new Map<string | number, Fiber>();
+  let fiber: Fiber | null = firstRemaining;
+  let i = startIndex;
+  while (fiber) {
+    map.set(fiber.key ?? i, fiber);
+    fiber = fiber.sibling;
+    i++;
+  }
+  return map;
+};
 
-  // Appends `fiber` to the new child list and advances the prev pointer.
-  const append = (fiber: Fiber, prev: Fiber | null): Fiber => {
-    fiber.index = index++;
-    if (!prev) wip.child = fiber;
-    else prev.sibling = fiber;
-    return fiber;
-  };
+// ---------------------------------------------------------------------------
+// reconcileChildren — passes
+// ---------------------------------------------------------------------------
 
-  // ------------------------------------------------------------------
-  // Pass 1 – left-to-right index scan (fast path, no reordering)
-  // Stops as soon as the keys diverge.
-  // ------------------------------------------------------------------
-  let oldFiber: Fiber | null = wip.alternate?.child ?? null;
-  let pass1Stopped = 0;
-  let prev: Fiber | null = null;
+/**
+ * Sequential scan — fast path, no reordering.
+ * Walks both lists left-to-right by index as long as keys match consecutively.
+ * Stops at the first key divergence and hands the remainder to reconcileKeyed.
+ * Returns the index at which it stopped and the next unconsumed old fiber.
+ */
+const reconcileSequential = (
+  state: ReconcileState,
+  firstOldFiber: Fiber | null,
+): { stoppedAt: number; oldFiber: Fiber | null } => {
+  let oldFiber = firstOldFiber;
+  let i = 0;
 
-  for (; pass1Stopped < newElements.length; pass1Stopped++) {
-    const element = newElements[pass1Stopped];
+  for (; i < state.newElements.length; i++) {
+    const element = state.newElements[i];
     const { key: elementKey = null, type: elementType } = element;
 
-    if (!oldFiber) break; // old list exhausted
-    if (oldFiber.key !== elementKey) break; // keys diverged → reorder
+    if (!oldFiber) break;           // old list exhausted
+    if (oldFiber.key !== elementKey) break; // keys diverged → hand off to pass 2
 
     if (oldFiber.type === elementType) {
-      prev = append(reuseOrCreate(oldFiber, element, wip), prev);
+      state.prev = appendFiber(reuseOrCreate(oldFiber, element, state.wip), state.prev, state.index++, state.wip);
     } else {
-      // Same key but different type → delete old, create new
+      // Same key, different type — delete old and place new.
       addFlagToFiber(oldFiber, DeletionFlag);
-      deletions.push(oldFiber);
-      prev = append(createAndPlace(element, wip), prev);
+      state.deletions.push(oldFiber);
+      state.prev = appendFiber(createAndPlace(element, state.wip), state.prev, state.index++, state.wip);
     }
 
     oldFiber = oldFiber.sibling;
   }
 
-  // ------------------------------------------------------------------
-  // Pass 2 – key-map lookup (handles reordering / insertions / removals)
-  // Only runs when pass 1 didn't consume every element.
-  // ------------------------------------------------------------------
-  if (pass1Stopped < newElements.length) {
-    // Build a map from key (or fallback index) → old fiber for all
-    // remaining old fibers that pass 1 didn't consume.
-    const oldFiberMap = new Map<string | number, Fiber>();
-    let remaining: Fiber | null = oldFiber;
-    let remainingIdx = pass1Stopped;
-    while (remaining) {
-      const mapKey: string | number = remaining.key ?? remainingIdx;
-      oldFiberMap.set(mapKey, remaining);
-      remaining = remaining.sibling;
-      remainingIdx++;
-    }
+  return { stoppedAt: i, oldFiber };
+};
 
-    // Track the highest old index we've seen to detect moves.
-    // Any reused fiber whose old index < lastPlacedIndex needs re-insertion.
-    let lastPlacedIndex = 0;
+/**
+ * Keyed lookup — handles reordering, insertions, and removals.
+ * Builds a key→fiber map from the remaining old fibers and resolves each new
+ * element by key (falling back to index). Only runs when reconcileSequential
+ * stopped before consuming all new elements.
+ */
+const reconcileKeyed = (
+  state: ReconcileState,
+  startAt: number,
+  remainingOldFiber: Fiber | null,
+): void => {
+  const oldFiberMap = buildOldFiberMap(remainingOldFiber, startAt);
 
-    for (let i = pass1Stopped; i < newElements.length; i++) {
-      const element = newElements[i];
-      const { key: elementKey = null, type: elementType } = element;
-      const mapKey: string | number = elementKey ?? i;
-      const matched = oldFiberMap.get(mapKey) ?? null;
+  // lastPlacedIndex tracks the highest committed index we have seen.
+  // Any reused fiber whose committed index is below it was moved rightward.
+  let lastPlacedIndex = 0;
 
-      if (matched && matched.type === elementType) {
-        oldFiberMap.delete(mapKey);
-        const newFiber = reuseOrCreate(matched, element, wip);
+  for (let i = startAt; i < state.newElements.length; i++) {
+    const element = state.newElements[i];
+    const { key: elementKey = null, type: elementType } = element;
+    const mapKey = elementKey ?? i;
+    const matched = oldFiberMap.get(mapKey) ?? null;
 
-        if (matched.index < lastPlacedIndex) {
-          // Moved to the right – needs re-insertion in the DOM.
-          addFlagToFiber(newFiber, MoveFlag);
-        } else {
-          lastPlacedIndex = matched.index;
-        }
+    if (matched && matched.type === elementType) {
+      oldFiberMap.delete(mapKey);
+      const newFiber = reuseOrCreate(matched, element, state.wip);
 
-        prev = append(newFiber, prev);
+      if (matched.index < lastPlacedIndex) {
+        addFlagToFiber(newFiber, MoveFlag); // moved right — needs re-insertion
       } else {
-        prev = append(createAndPlace(element, wip), prev);
+        lastPlacedIndex = matched.index;
       }
-    }
 
-    // Old fibers still in the map have no counterpart → delete.
-    for (const orphan of oldFiberMap.values()) {
-      addFlagToFiber(orphan, DeletionFlag);
-      deletions.push(orphan);
-    }
-  } else {
-    // Pass 1 consumed all new elements; delete leftover old fibers.
-    while (oldFiber) {
-      addFlagToFiber(oldFiber, DeletionFlag);
-      deletions.push(oldFiber);
-      oldFiber = oldFiber.sibling;
+      state.prev = appendFiber(newFiber, state.prev, state.index++, state.wip);
+    } else {
+      state.prev = appendFiber(createAndPlace(element, state.wip), state.prev, state.index++, state.wip);
     }
   }
 
-  // Terminate the new sibling chain.
-  if (prev) prev.sibling = null;
+  // Fibers left in the map have no matching new element — delete them.
+  for (const orphan of oldFiberMap.values()) {
+    addFlagToFiber(orphan, DeletionFlag);
+    state.deletions.push(orphan);
+  }
+};
 
-  if (deletions.length) wip.deletions = deletions;
+// ---------------------------------------------------------------------------
+// reconcileChildren
+// ---------------------------------------------------------------------------
+
+const reconcileChildren = (wip: Fiber, children: RectifyNode): void => {
+  const newElements = toArray(children)
+    .map(createElementFromRectifyNode)
+    .filter(isValidRectifyElement);
+
+  const state: ReconcileState = { wip, newElements, deletions: [], prev: null, index: 0 };
+  const firstOldFiber: Fiber | null = wip.alternate?.child ?? null;
+
+  const { stoppedAt, oldFiber } = reconcileSequential(state, firstOldFiber);
+
+  if (stoppedAt < newElements.length) {
+    // Sequential scan stopped early — resolve the remainder by key.
+    reconcileKeyed(state, stoppedAt, oldFiber);
+  } else {
+    // Pass 1 consumed all new elements — delete any leftover old fibers.
+    let leftover: Fiber | null = oldFiber;
+    while (leftover) {
+      addFlagToFiber(leftover, DeletionFlag);
+      state.deletions.push(leftover);
+      leftover = leftover.sibling;
+    }
+  }
+
+  if (state.prev) state.prev.sibling = null; // terminate the new sibling chain
+  if (state.deletions.length) wip.deletions = state.deletions;
 };

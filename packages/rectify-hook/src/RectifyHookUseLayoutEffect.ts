@@ -3,14 +3,16 @@ import {
   getFiberRendering,
   getHookIndex,
   nextHookIndex,
+  getHookSlot,
+  attachHook,
 } from "./RectifyHookRenderingFiber";
 import { depsChanged } from "./RectifyHookDeps";
 import type { EffectState } from "./RectifyHookTypes";
 
-// Layout effects collected during render, flushed synchronously after commit
+// Layout effects collected during render, flushed synchronously after commit.
 const pendingLayoutEffects: EffectState[] = [];
 
-// Layout cleanups deferred from the render phase
+// Layout cleanups deferred from the render phase.
 const pendingLayoutCleanups: EffectState[] = [];
 
 /**
@@ -19,7 +21,7 @@ const pendingLayoutCleanups: EffectState[] = [];
  * layout or synchronously re-style the DOM (tooltips, scroll restoration,
  * measuring element sizes, etc.).
  *
- * Prefer `useEffect` for everything else – `useLayoutEffect` blocks the paint.
+ * Prefer `useEffect` for everything else — `useLayoutEffect` blocks the paint.
  *
  * @example
  * useLayoutEffect(() => {
@@ -39,30 +41,19 @@ function useLayoutEffect(
   const hookIndex = getHookIndex();
   nextHookIndex();
 
-  let hook: Hook | null = fiber.memoizedState;
-  let prevHook: Hook | null = null;
-  for (let i = 0; i < hookIndex; i++) {
-    prevHook = hook;
-    hook = hook?.next ?? null;
-  }
+  const { hook, prevHook } = getHookSlot(fiber, hookIndex);
 
   if (!hook) {
-    // Mount – always schedule the layout effect.
+    // Mount — always schedule the layout effect.
     const effectState: EffectState = { create, deps, cleanup: undefined };
     const newHook: Hook = { memoizedState: effectState, queue: null, next: null };
-
-    if (prevHook) {
-      prevHook.next = newHook;
-    } else {
-      fiber.memoizedState = newHook;
-    }
-
+    attachHook(fiber, newHook, prevHook);
     pendingLayoutEffects.push(effectState);
   } else {
-    // Update – only re-run if deps changed.
+    // Update — only re-run if deps changed.
     const prev = hook.memoizedState as EffectState;
     if (depsChanged(prev.deps, deps)) {
-      pendingLayoutCleanups.push(prev);
+      pendingLayoutCleanups.push(prev); // defer old cleanup to post-commit
       const effectState: EffectState = { create, deps, cleanup: undefined };
       hook.memoizedState = effectState;
       pendingLayoutEffects.push(effectState);

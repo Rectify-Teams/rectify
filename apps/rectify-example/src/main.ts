@@ -17,18 +17,21 @@ type TCxt = {
 
 const ThemeCtx = createContext<TCxt | null>(null);
 
-const ThemeProvider = memo((props: { children?: any }) => {
-  console.log("ThemeProvider");
+const ThemeProvider = memo(
+  (props: { children?: any }) => {
+    console.log("ThemeProvider");
 
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+    const [theme, setTheme] = useState<"light" | "dark">("light");
 
-  const value = useMemo(() => ({ theme, updateValue: setTheme }), [theme]);
+    const value = useMemo(() => ({ theme, updateValue: setTheme }), [theme]);
 
-  return jsx(ThemeCtx.Provider, {
-    value: value,
-    children: props.children,
-  });
-});
+    return jsx(ThemeCtx.Provider, {
+      value: value,
+      children: props.children,
+    });
+  },
+  () => true,
+);
 
 const ChildThem = () => {
   console.log("ChildThem");
@@ -57,10 +60,7 @@ const Child = () => {
 
   const { value } = useContext(CounterContext)!;
   return jsx("div", {
-    children: [
-      jsx("h1", { children: value }),
-      jsx(ThemeProvider, { children: jsx(ChildThem) }),
-    ],
+    children: [jsx("h1", { children: value }), jsx(Theme)],
   });
 };
 

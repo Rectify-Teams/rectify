@@ -87,41 +87,52 @@ const performWork = (lanes: number): void => {
 setWorkCallback(performWork);
 
 // ---------------------------------------------------------------------------
-// Schedule rerender – called by useState dispatcher
+// Injected callbacks — wired into the hook layer at startup
 // ---------------------------------------------------------------------------
-setScheduleRerender((fiber: Fiber) => {
-  // Inside useLayoutEffect: force SyncLane so the drain loop below can
-  // pick up the update, and skip the async scheduler entirely.
+
+/**
+ * Called by useState's dispatcher when state changes.
+ * Enqueues the fiber for re-render on the appropriate lane.
+ */
+const onScheduleRerender = (fiber: Fiber): void => {
+  // Inside useLayoutEffect: force SyncLane so the flush loop picks it up
+  // synchronously instead of scheduling an async task.
   const lane = isFlushingLayoutEffects ? SyncLane : requestUpdateLane();
   enqueueUpdate({ lanes: lane, fiber, next: null });
   if (!isFlushingLayoutEffects) {
     scheduleRenderLane(lane);
   }
-});
+};
 
-// Mark a context subscriber's WIP fiber dirty so it fails the bailout and
-// re-renders in the current pass — no second render needed.
-// The subscriber set holds committed (current) fibers; their WIP is .alternate.
-setMarkFiberDirty((fiber: Fiber) => {
+/**
+ * Called by notifyContextConsumers when a Provider value changes.
+ * Marks the subscriber's WIP fiber dirty so it fails the bailout and
+ * re-renders in the current pass — no second render pass needed.
+ *
+ * The subscriber set holds committed (current) fibers; their WIP is .alternate.
+ * We also bubble childLanes up the WIP tree so workLoopOnFiberLanes descends
+ * into the subscriber's subtree.
+ */
+const onMarkFiberDirty = (fiber: Fiber): void => {
   const lane = getCurrentLanePriority();
 
-  // Mark both current and wip so the lane survives createWorkInProgress copies.
+  // Mark both sides so the lane survives createWorkInProgress copies.
   fiber.lanes |= lane;
   const wip = fiber.alternate;
-  if (wip) {
-    wip.lanes |= lane;
+  if (!wip) return;
 
-    // Bubble childLanes up the WIP tree so workLoopOnFiberLanes descends into
-    // this subtree. We only need to go as far as an ancestor whose childLanes
-    // already includes this lane (it will cover everything above that).
-    let parent = wip.return;
-    while (parent) {
-      if ((parent.childLanes & lane) === lane) break;
-      parent.childLanes |= lane;
-      parent = parent.return;
-    }
+  wip.lanes |= lane;
+
+  let parent = wip.return;
+  while (parent) {
+    if ((parent.childLanes & lane) === lane) break; // already covered above
+    parent.childLanes |= lane;
+    parent = parent.return;
   }
-});
+};
+
+setScheduleRerender(onScheduleRerender);
+setMarkFiberDirty(onMarkFiberDirty);
 
 // ---------------------------------------------------------------------------
 // Public API
@@ -202,14 +213,23 @@ const flushPendingUpdates = (): void => {
   }
 };
 
+/**
+ * Stamps `lane` onto the target fiber and bubbles it up as `childLanes` so
+ * `workLoopOnFiberLanes` knows to descend into that subtree.
+ */
 const propagateLaneToAncestors = (updateQueue: UpdateQueue): void => {
+  const lane = updateQueue.lanes;
   let fiber: Fiber | null = updateQueue.fiber;
-  fiber.lanes |= updateQueue.lanes;
-  if (fiber.alternate) fiber.alternate.lanes |= updateQueue.lanes;
+
+  // Mark the fiber itself (and its alternate) with the lane.
+  fiber.lanes |= lane;
+  if (fiber.alternate) fiber.alternate.lanes |= lane;
+
+  // Walk up and set childLanes on every ancestor.
   fiber = fiber.return;
   while (fiber) {
-    fiber.childLanes |= updateQueue.lanes;
-    if (fiber.alternate) fiber.alternate.childLanes |= updateQueue.lanes;
+    fiber.childLanes |= lane;
+    if (fiber.alternate) fiber.alternate.childLanes |= lane;
     fiber = fiber.return;
   }
 };
