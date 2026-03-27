@@ -26,19 +26,20 @@ import {
 } from "./RectifyFiber";
 import { getCurrentLanePriority } from "./RectifyFiberRenderPriority";
 
-const replaceCurrentWithWip = (current: Fiber, wip: Fiber) => {
+const swapCurrentForWip = (current: Fiber, wip: Fiber) => {
   const parent = wip.return;
   if (!parent) return;
 
   if (parent.child === current) {
     parent.child = wip;
-  } else {
-    let prevSibling = parent.child;
-    while (prevSibling && prevSibling.sibling !== current) {
-      prevSibling = prevSibling.sibling;
-    }
-    if (prevSibling) prevSibling.sibling = wip;
+    return;
   }
+
+  let prevSibling = parent.child;
+  while (prevSibling && prevSibling.sibling !== current) {
+    prevSibling = prevSibling.sibling;
+  }
+  if (prevSibling) prevSibling.sibling = wip;
 };
 
 export const workLoop = (wipRoot: Fiber) => {
@@ -58,7 +59,7 @@ export const workLoop = (wipRoot: Fiber) => {
 export const workLoopOnFiberLanes = (wipRoot: Fiber, renderLanes: Lanes) => {
   if (wipRoot.lanes & renderLanes) {
     const wip = createWorkInProgress(wipRoot, wipRoot.pendingProps);
-    replaceCurrentWithWip(wipRoot, wip);
+    swapCurrentForWip(wipRoot, wip);
     workLoop(wip);
     bubbleFlagsToRoot(wip);
     return;
@@ -74,20 +75,18 @@ export const workLoopOnFiberLanes = (wipRoot: Fiber, renderLanes: Lanes) => {
 };
 
 const beginWork = (wip: Fiber): Fiber | null => {
-  const workTag = wip.workTag;
-  switch (workTag) {
+  switch (wip.workTag) {
     case FunctionComponent: {
       const Component = wip.type;
       if (!isFunction(Component)) break;
       const ComponentWithHooks = withHooks(wip, Component);
-      const nextChildren = ComponentWithHooks(wip.pendingProps);
-      reconcilerChildren(wip, nextChildren);
+      const children = ComponentWithHooks(wip.pendingProps);
+      reconcileChildren(wip, children);
       break;
     }
     case HostRoot:
     case HostComponent: {
-      const nextChildren = wip.pendingProps?.children;
-      reconcilerChildren(wip, nextChildren);
+      reconcileChildren(wip, wip.pendingProps?.children);
       break;
     }
   }
@@ -133,11 +132,8 @@ const bubbleProperties = (wip: Fiber) => {
 
   let child = wip.child;
   while (child) {
-    subtreeFlags |= child.flags;
-    subtreeFlags |= child.subtreeFlags;
-
-    childLanes |= child.lanes;
-    childLanes |= child.childLanes;
+    subtreeFlags |= child.flags | child.subtreeFlags;
+    childLanes |= child.lanes | child.childLanes;
 
     child.return = wip;
     child = child.sibling;
@@ -147,70 +143,61 @@ const bubbleProperties = (wip: Fiber) => {
   wip.childLanes = childLanes;
 };
 
-const reconcilerChildren = (wip: Fiber, children: RectifyNode) => {
-  const currentFiber = wip.alternate;
-  const currentFiberChildHead = currentFiber?.child;
-  const deletionFiber: Fiber[] = [];
+const reconcileChildren = (wip: Fiber, children: RectifyNode) => {
+  const deletions: Fiber[] = [];
 
   let index = 0;
-  let oldCurrentFiberChild = currentFiberChildHead;
-  let prevSibling: Fiber | null = null;
+  let oldFiber = wip.alternate?.child ?? null;
+  let prevNewFiber: Fiber | null = null;
 
-  toArray(children).forEach((child) => {
-    const childElement = createElementFromRectifyNode(child);
-    if (!isValidRectifyElement(childElement)) return;
+  for (const child of toArray(children)) {
+    const element = createElementFromRectifyNode(child);
+    if (!isValidRectifyElement(element)) continue;
 
-    const childKey = childElement.key ?? null;
-    const childType = childElement.type;
+    const { key: elementKey = null, type: elementType } = element;
+
+    const canReuse =
+      oldFiber &&
+      oldFiber.key === elementKey &&
+      oldFiber.type === elementType;
 
     let newFiber: Fiber;
 
-    const isMatched =
-      oldCurrentFiberChild &&
-      oldCurrentFiberChild.key === childKey &&
-      oldCurrentFiberChild.type === childType;
-
-    if (isMatched) {
-      newFiber = createWorkInProgress(
-        oldCurrentFiberChild!,
-        childElement.props,
-      );
-      const isPropsChanged = hasPropsChanged(
-        oldCurrentFiberChild?.memoizedProps,
-        childElement.props,
-      );
-      if (isPropsChanged) {
+    if (canReuse) {
+      newFiber = createWorkInProgress(oldFiber!, element.props);
+      if (hasPropsChanged(oldFiber!.memoizedProps, element.props)) {
         addFlagToFiber(newFiber, UpdateFlag);
       }
     } else {
-      newFiber = createFiberFromRectifyElement(childElement);
+      newFiber = createFiberFromRectifyElement(element);
       addFlagToFiber(newFiber, PlacementFlag);
 
-      if (oldCurrentFiberChild) {
-        addFlagToFiber(oldCurrentFiberChild, DeletionFlag);
-        deletionFiber.push(oldCurrentFiberChild);
+      if (oldFiber) {
+        addFlagToFiber(oldFiber, DeletionFlag);
+        deletions.push(oldFiber);
       }
     }
 
     newFiber.return = wip;
     newFiber.index = index++;
-    newFiber.key = childKey;
-    newFiber.type = childType;
+    newFiber.key = elementKey;
+    newFiber.type = elementType;
 
-    if (!prevSibling) wip.child = newFiber;
-    else prevSibling.sibling = newFiber;
+    if (!prevNewFiber) wip.child = newFiber;
+    else prevNewFiber.sibling = newFiber;
 
-    prevSibling = newFiber;
-    oldCurrentFiberChild = oldCurrentFiberChild?.sibling;
-  });
-
-  while (oldCurrentFiberChild) {
-    addFlagToFiber(oldCurrentFiberChild, DeletionFlag);
-    deletionFiber.push(oldCurrentFiberChild);
-    oldCurrentFiberChild = oldCurrentFiberChild.sibling;
+    prevNewFiber = newFiber;
+    oldFiber = oldFiber?.sibling ?? null;
   }
 
-  if (deletionFiber.length) {
-    wip.deletions = deletionFiber;
+  // Any remaining old fibers have no counterpart in the new children → delete
+  while (oldFiber) {
+    addFlagToFiber(oldFiber, DeletionFlag);
+    deletions.push(oldFiber);
+    oldFiber = oldFiber.sibling;
+  }
+
+  if (deletions.length) {
+    wip.deletions = deletions;
   }
 };

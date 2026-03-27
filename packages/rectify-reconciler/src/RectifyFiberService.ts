@@ -94,16 +94,16 @@ function getHostSibling(fiber: Fiber): Node | null {
   return null;
 }
 
-const hasPropsChanged = (newProps: any, oldProps: any) => {
+const hasPropsChanged = (prevProps: any, nextProps: any) => {
   const CHILDREN_KEY = "children";
-  if (isPlainObject(newProps) && isPlainObject(oldProps)) {
+  if (isPlainObject(prevProps) && isPlainObject(nextProps)) {
     return !shallowEqual(
-      omit(newProps, [CHILDREN_KEY]),
-      omit(oldProps, [CHILDREN_KEY]),
+      omit(prevProps, [CHILDREN_KEY]),
+      omit(nextProps, [CHILDREN_KEY]),
     );
   }
 
-  return newProps !== oldProps;
+  return prevProps !== nextProps;
 };
 
 export {
