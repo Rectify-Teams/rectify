@@ -23,6 +23,7 @@ import {
   MoveFlag,
   NoFlags,
   PlacementFlag,
+  RefFlag,
   UpdateFlag,
 } from "./RectifyFiberFlags";
 import { Lanes, NoLanes, SyncLane, InputLane } from "./RectifyFiberLanes";
@@ -349,6 +350,11 @@ const reuseOrCreate = (oldFiber: Fiber, element: RectifyElement, wip: Fiber): Fi
   const newFiber = createWorkInProgress(oldFiber, element.props);
   if (hasPropsChanged(oldFiber.memoizedProps, element.props)) {
     addFlagToFiber(newFiber, UpdateFlag);
+  }
+  // Track ref changes independently so refs get attached/detached even when
+  // no other props changed.
+  if ((oldFiber.memoizedProps?.ref ?? null) !== (element.props?.ref ?? null)) {
+    addFlagToFiber(newFiber, RefFlag);
   }
   newFiber.return = wip;
   return newFiber;
