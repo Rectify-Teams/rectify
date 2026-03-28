@@ -5,6 +5,7 @@ export { memo } from "./RectifyMemo";
 export type { MemoComponent } from "./RectifyMemo";
 export {
   useState,
+  useReducer,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -13,7 +14,7 @@ export {
   createContext,
   useContext,
 } from "@rectify-dev/hook";
-export type { RefObject, RectifyContext } from "@rectify-dev/hook";
+export type { RefObject, RectifyContext, Reducer, Dispatch } from "@rectify-dev/hook";
 export type {
   CSSProperties,
   HTMLAttributes,

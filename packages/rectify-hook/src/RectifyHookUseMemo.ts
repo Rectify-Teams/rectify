@@ -2,6 +2,8 @@ import {
   getFiberRendering,
   getHookIndex,
   nextHookIndex,
+  getHookSlot,
+  attachHook,
 } from "./RectifyHookRenderingFiber";
 import { depsChanged } from "./RectifyHookDeps";
 
@@ -27,24 +29,12 @@ function useMemo<T>(factory: () => T, deps: any[]): T {
   const hookIndex = getHookIndex();
   nextHookIndex();
 
-  let hook = fiber.memoizedState;
-  let prevHook = null;
-  for (let i = 0; i < hookIndex; i++) {
-    prevHook = hook;
-    hook = hook?.next ?? null;
-  }
+  const { hook, prevHook } = getHookSlot(fiber, hookIndex);
 
   if (!hook) {
     // Mount – compute and cache the initial value.
     const state: MemoState<T> = { value: factory(), deps };
-    const newHook = { memoizedState: state, queue: null, next: null };
-
-    if (prevHook) {
-      prevHook.next = newHook;
-    } else {
-      fiber.memoizedState = newHook;
-    }
-
+    attachHook(fiber, { memoizedState: state, queue: null, next: null }, prevHook);
     return state.value;
   }
 

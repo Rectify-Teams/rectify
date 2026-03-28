@@ -1,3 +1,20 @@
 .red {
   color: red;
 }
+
+.app {
+  font-family: sans-serif;
+  max-width: 480px;
+  margin: 2rem auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.box {
+  display: inline-block;
+  padding: 1rem 2rem;
+  background: #e0f0ff;
+  border: 1px solid #90c0ff;
+  border-radius: 4px;
+}
