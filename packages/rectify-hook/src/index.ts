@@ -1,5 +1,7 @@
 export { withHooks } from "./RectifyHook";
 export { default as useState } from "./RectifyHookUseState";
+export { default as useReducer } from "./RectifyHookUseReducer";
+export type { Reducer, Dispatch } from "./RectifyHookUseReducer";
 export { default as useEffect, flushEffects, flushEffectCleanups, runEffectCleanups } from "./RectifyHookUseEffect";
 export { default as useLayoutEffect, flushLayoutEffects, flushLayoutEffectCleanups, runLayoutEffectCleanups } from "./RectifyHookUseLayoutEffect";
 export { default as useRef } from "./RectifyHookUseRef";

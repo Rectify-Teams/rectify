@@ -4,6 +4,8 @@ import {
   getFiberRendering,
   getHookIndex,
   nextHookIndex,
+  getHookSlot,
+  attachHook,
   scheduleRerender,
 } from "./RectifyHookRenderingFiber";
 
@@ -28,13 +30,10 @@ function useState<S>(
   const hookIndex = getHookIndex();
   nextHookIndex();
 
-  let state: Hook<S | undefined> | null = fiber.memoizedState;
-  let prevHook: Hook<S | undefined> | null = null;
-
-  for (let i = 0; i < hookIndex; i++) {
-    prevHook = state;
-    state = state?.next ?? null;
-  }
+  let { hook: state, prevHook } = getHookSlot(fiber, hookIndex) as {
+    hook: Hook<S | undefined> | null;
+    prevHook: Hook<S | undefined> | null;
+  };
 
   if (!state) {
     state = {
@@ -42,11 +41,7 @@ function useState<S>(
       queue: null,
       next: null,
     };
-    if (prevHook) {
-      prevHook.next = state;
-    } else {
-      fiber.memoizedState = state;
-    }
+    attachHook(fiber, state, prevHook);
   }
 
   let update = state.queue;
