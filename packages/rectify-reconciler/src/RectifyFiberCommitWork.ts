@@ -1,7 +1,7 @@
 import { applyPropsToDom, precacheFiberNode } from "@rectify-dev/dom-binding";
 import { Fiber } from "@rectify-dev/shared";
 import { runEffectCleanups, clearContextSubscriptions } from "@rectify-dev/hook";
-import { NoFlags, MoveFlag, PlacementFlag, UpdateFlag } from "./RectifyFiberFlags";
+import { NoFlags, MoveFlag, PlacementFlag, RefFlag, UpdateFlag } from "./RectifyFiberFlags";
 import {
   createDomElementFromFiber,
   hasFlagOnFiber,
@@ -11,7 +11,7 @@ import {
 } from "./RectifyFiberService";
 import { HostComponent, HostText } from "./RectifyFiberWorkTags";
 
-const MutationMask = PlacementFlag | UpdateFlag | MoveFlag;
+const MutationMask = PlacementFlag | UpdateFlag | MoveFlag | RefFlag;
 
 const commitWork = (finishedWork: Fiber) => {
   if (finishedWork.deletions?.length) {
@@ -40,18 +40,34 @@ const syncMemoizedProps = (wip: Fiber) => {
   wip.memoizedProps = wip.pendingProps;
 };
 
-/** Set ref.current = DOM node after the node is placed/updated/moved. */
+/** Attach a ref after a node is placed or the ref prop changes.
+ * For callback refs, the return value is stored as a cleanup to be called
+ * before the next attach or on unmount (React 19-style cleanup refs). */
 const attachRef = (wip: Fiber): void => {
   const ref = wip.pendingProps?.ref;
-  if (ref && typeof ref === "object" && "current" in ref) {
+  if (!ref) return;
+  if (typeof ref === "function") {
+    const cleanup = ref(wip.stateNode);
+    wip.refCleanup = typeof cleanup === "function" ? cleanup : null;
+  } else if (typeof ref === "object" && "current" in ref) {
     ref.current = wip.stateNode;
   }
 };
 
-/** Clear ref.current = null when the fiber is removed from the tree. */
+/** Detach a ref when the fiber is removed or the ref prop changes.
+ * Calls the stored cleanup (if any), otherwise falls back to `ref(null)` /
+ * clearing `.current`. */
 const detachRef = (fiber: Fiber): void => {
+  if (fiber.refCleanup) {
+    fiber.refCleanup();
+    fiber.refCleanup = null;
+    return;
+  }
   const ref = fiber.memoizedProps?.ref;
-  if (ref && typeof ref === "object" && "current" in ref) {
+  if (!ref) return;
+  if (typeof ref === "function") {
+    ref(null);
+  } else if (typeof ref === "object" && "current" in ref) {
     ref.current = null;
   }
 };
@@ -109,8 +125,16 @@ const commitMutationHostComponent = (wip: Fiber) => {
   if (hasFlagOnFiber(wip, UpdateFlag)) {
     applyPropsToDom(wip.stateNode, wip.memoizedProps, wip.pendingProps);
     precacheFiberNode(wip, wip.stateNode!);
-    attachRef(wip);
     removeFlagFromFiber(wip, UpdateFlag);
+    // ref attachment is handled exclusively via PlacementFlag/MoveFlag (placeNode)
+    // and RefFlag (below) so we never double-invoke callback refs on plain updates.
+  }
+
+  if (hasFlagOnFiber(wip, RefFlag)) {
+    // Detach the previously committed ref, then attach the incoming one.
+    detachRef(wip); // reads memoizedProps.ref → sets .current = null
+    attachRef(wip); // reads pendingProps.ref  → sets .current = stateNode
+    removeFlagFromFiber(wip, RefFlag);
   }
 };
 

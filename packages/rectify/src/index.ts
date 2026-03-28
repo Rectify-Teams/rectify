@@ -1,9 +1,18 @@
-export type { FC } from "@rectify-dev/shared";
+export type { FC, RectifyNode } from "@rectify-dev/shared";
 export { createRoot, SyntheticEvent } from "@rectify-dev/dom";
 export { jsx, Fragment } from "./RectifyJsx";
 export { memo } from "./RectifyMemo";
 export type { MemoComponent } from "./RectifyMemo";
-export { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, createContext, useContext } from "@rectify-dev/hook";
+export {
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useMemo,
+  useCallback,
+  createContext,
+  useContext,
+} from "@rectify-dev/hook";
 export type { RefObject, RectifyContext } from "@rectify-dev/hook";
 export type {
   CSSProperties,

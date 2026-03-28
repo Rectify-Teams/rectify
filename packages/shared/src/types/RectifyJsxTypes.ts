@@ -151,7 +151,7 @@ export interface HTMLAttributes extends RectifyEventHandlers, AriaAttributes {
   innerHTML?: string;
   children?: RectifyNode | RectifyNode[];
   key?: RectifyKey;
-  ref?: any;
+  ref?: { current: any } | ((node: any) => void);
   [key: `data-${string}`]: string | number | boolean | undefined;
 }
 

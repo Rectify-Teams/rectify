@@ -32,4 +32,7 @@ export type Fiber = {
   subtreeFlags: number;
 
   memoizedState: Hook | null;
+
+  /** Cleanup function returned by a callback ref. Called before the next attach or on unmount. */
+  refCleanup: (() => void) | null;
 };
