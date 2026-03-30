@@ -118,7 +118,6 @@ All hooks are imported from `@rectify-dev/core`.
 | `useCallback` | Stable function reference, re-created on dep change |
 | `useContext` | Subscribe to a context value |
 | `useId` | Stable, globally unique ID (`":r0:"`) for accessibility |
-| `useDeferredValue` | Defer non-urgent value updates to keep UI responsive |
 
 ### Class components
 
@@ -245,7 +244,6 @@ When state changes, Rectify builds a WIP tree, diffs it against current using **
 | Sync | Initial render & forced sync updates |
 | Input | User interactions (click, keyboard) |
 | Default | Normal `setState` outside event handlers |
-| Transition | `useDeferredValue` deferred work |
 | Idle | Background / lowest-priority work |
 
 ---
@@ -260,7 +258,7 @@ When state changes, Rectify builds a WIP tree, diffs it against current using **
 | `memo` custom comparator | ✅ | ✅ |
 | `lazy` + `Suspense` | ✅ | ✅ |
 | `useReducer` | ✅ | ✅ |
-| `useId` / `useDeferredValue` | ✅ | ✅ |
+| `useId` | ✅ | ✅ |
 | Context — both Provider forms | ✅ `<Ctx>` or `<Ctx.Provider>` | ✅ `<Ctx>` or `<Ctx.Provider>` |
 | Router | React Router (separate) | `@rectify-dev/router` (separate) |
 | `startTransition` | ✅ | ❌ |

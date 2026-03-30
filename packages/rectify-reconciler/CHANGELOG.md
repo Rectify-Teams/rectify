@@ -31,12 +31,11 @@
 
 ### Patch Changes
 
-- Add `useReducer`, `useDeferredValue`, and `ref` improvements
+- Add `useReducer`, and `ref` improvements
 
   **New hooks**
 
   - `useReducer(reducer, initialArg, init?)` — full implementation including lazy initializer overload
-  - `useDeferredValue(value)` — defers non-urgent updates to TransitionLane, keeping high-priority renders fast
 
   **`ref` prop**
 

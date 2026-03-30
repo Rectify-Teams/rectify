@@ -24,7 +24,7 @@ If you know React, you already know Rectify. The component model, hooks, and JSX
 | **Fiber reconciler** | WIP/current fiber tree diffing with interruptible rendering |
 | **Function components** | Plain functions returning JSX |
 | **Class components** | `Component<P, S>` base with full lifecycle |
-| **Hooks** | `useState`, `useEffect`, `useRef`, `useMemo`, `useCallback`, `useContext`, `useReducer`, `useId`, `useDeferredValue` |
+| **Hooks** | `useState`, `useEffect`, `useRef`, `useMemo`, `useCallback`, `useContext`, `useReducer`, `useId` |
 | **Context** | `createContext` + `useContext` |
 | **`memo()`** | Shallow-equality memoization to skip re-renders |
 | **`lazy()` + `<Suspense>`** | Dynamic imports with loading boundaries |

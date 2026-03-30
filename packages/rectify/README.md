@@ -13,7 +13,7 @@ A lightweight React-like UI library built from scratch — fiber reconciler, con
 | `useRef` (object + callback refs) | ✅ |
 | `useMemo`, `useCallback` | ✅ |
 | `useContext` + `createContext` | ✅ |
-| `useId`, `useDeferredValue` | ✅ |
+| `useId` | ✅ |
 | `memo()` with custom comparator | ✅ |
 | `lazy()` + `<Suspense>` | ✅ |
 | SVG elements | ✅ |

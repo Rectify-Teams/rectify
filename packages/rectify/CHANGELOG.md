@@ -7,7 +7,6 @@
 - **Version alignment** — all packages aligned to `2.3.0` as a unified release.
 - **Auto-bailout for all function components** — no `memo()` needed for shallow-equal props; `memo` is only required for custom comparators.
 - **SVG support** — `createElementNS` used for SVG tags; camelCase attrs converted to kebab-case automatically.
-- **`useDeferredValue`** — defers non-urgent value updates to keep high-priority renders responsive.
 - **Docs** — full Docusaurus documentation site added at `apps/rectify-docusaurus`.
 
 ## 2.2.0
@@ -38,12 +37,11 @@
 
 ### Minor Changes
 
-- Add `useReducer`, `useDeferredValue`, and `ref` improvements
+- Add `useReducer`, and `ref` improvements
 
   **New hooks**
 
   - `useReducer(reducer, initialArg, init?)` — full implementation including lazy initializer overload
-  - `useDeferredValue(value)` — defers non-urgent updates to TransitionLane, keeping high-priority renders fast
 
   **`ref` prop**
 

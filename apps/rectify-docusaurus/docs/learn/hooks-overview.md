@@ -29,7 +29,6 @@ Hooks are functions that let you use state, lifecycle, and other Rectify feature
 | [`useCallback`](/learn/use-callback) | Memoized callback function |
 | [`useContext`](/learn/use-context) | Read from a context |
 | [`useId`](/learn/use-id) | Stable unique ID for accessibility |
-| [`useDeferredValue`](/learn/use-deferred-value) | Defer updating a value to a lower priority |
 
 ## Custom hooks
 
