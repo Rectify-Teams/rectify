@@ -1,0 +1,400 @@
+# @rectify-dev/core
+
+A lightweight React-like UI library built from scratch with a fiber-based reconciler, concurrent rendering, and a full hooks API.
+
+---
+
+## Installation
+
+```bash
+pnpm add @rectify-dev/core
+# or
+npm install @rectify-dev/core
+```
+
+Configure your bundler to use the Rectify JSX runtime:
+
+```json
+// tsconfig.json
+{
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "@rectify-dev/core"
+  }
+}
+```
+
+---
+
+## Table of Contents
+
+- [Rendering](#rendering)
+- [Hooks](#hooks)
+  - [useState](#usestate)
+  - [useReducer](#usereducer)
+  - [useEffect](#useeffect)
+  - [useLayoutEffect](#uselayouteffect)
+  - [useRef](#useref)
+  - [useMemo](#usememo)
+  - [useCallback](#usecallback)
+  - [useId](#useid)
+  - [useContext / createContext](#usecontext--createcontext)
+- [Class Components](#class-components)
+- [memo](#memo)
+- [lazy + Suspense](#lazy--suspense)
+- [Fragment](#fragment)
+- [TypeScript](#typescript)
+
+---
+
+## Rendering
+
+```tsx
+import { createRoot } from "@rectify-dev/core";
+
+const root = createRoot(document.getElementById("app")!);
+root.render(<App />);
+```
+
+---
+
+## Hooks
+
+### useState
+
+```tsx
+import { useState } from "@rectify-dev/core";
+
+const Counter = () => {
+  const [count, setCount] = useState(0);
+  return <button onClick={() => setCount(c => c + 1)}>{count}</button>;
+};
+```
+
+Supports lazy initializer:
+
+```tsx
+const [state, setState] = useState(() => expensiveComputation());
+```
+
+---
+
+### useReducer
+
+```tsx
+import { useReducer } from "@rectify-dev/core";
+
+type Action = { type: "inc" } | { type: "dec" };
+
+const reducer = (state: number, action: Action) => {
+  if (action.type === "inc") return state + 1;
+  if (action.type === "dec") return state - 1;
+  return state;
+};
+
+const Counter = () => {
+  const [count, dispatch] = useReducer(reducer, 0);
+  return (
+    <>
+      <button onClick={() => dispatch({ type: "dec" })}>-</button>
+      {count}
+      <button onClick={() => dispatch({ type: "inc" })}>+</button>
+    </>
+  );
+};
+```
+
+---
+
+### useEffect
+
+Runs after the browser has painted. Clean up by returning a function.
+
+```tsx
+import { useEffect } from "@rectify-dev/core";
+
+const Timer = () => {
+  useEffect(() => {
+    const id = setInterval(() => console.log("tick"), 1000);
+    return () => clearInterval(id);
+  }, []); // empty deps → run once on mount
+};
+```
+
+---
+
+### useLayoutEffect
+
+Same signature as `useEffect` but fires synchronously after DOM mutations, before the browser paints. Use for measuring layout or imperatively updating the DOM.
+
+```tsx
+import { useLayoutEffect, useRef } from "@rectify-dev/core";
+
+const Tooltip = () => {
+  const ref = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    console.log(ref.current?.getBoundingClientRect());
+  });
+  return <div ref={ref}>hover me</div>;
+};
+```
+
+---
+
+### useRef
+
+Returns a stable mutable container whose `.current` value persists across renders.
+
+```tsx
+import { useRef } from "@rectify-dev/core";
+
+const Input = () => {
+  const ref = useRef<HTMLInputElement>(null);
+  return <input ref={ref} onFocus={() => ref.current?.select()} />;
+};
+```
+
+Callback refs are also supported:
+
+```tsx
+<div ref={(node) => { /* attach */ return () => { /* cleanup */ }; }} />
+```
+
+---
+
+### useMemo
+
+Memoises an expensive computation; recomputes only when `deps` change.
+
+```tsx
+import { useMemo } from "@rectify-dev/core";
+
+const List = ({ items }: { items: number[] }) => {
+  const sorted = useMemo(() => [...items].sort((a, b) => a - b), [items]);
+  return <ul>{sorted.map(n => <li key={n}>{n}</li>)}</ul>;
+};
+```
+
+---
+
+### useCallback
+
+Memoises a function reference; useful for stable event handler props passed to `memo`-wrapped children.
+
+```tsx
+import { useCallback } from "@rectify-dev/core";
+
+const Parent = () => {
+  const handleClick = useCallback(() => console.log("click"), []);
+  return <Child onClick={handleClick} />;
+};
+```
+
+---
+
+### useId
+
+Returns a stable, globally unique string ID that never changes for the lifetime of the component. Ideal for linking form labels to inputs.
+
+```tsx
+import { useId } from "@rectify-dev/core";
+
+const Field = ({ label }: { label: string }) => {
+  const id = useId();
+  return (
+    <>
+      <label htmlFor={id}>{label}</label>
+      <input id={id} />
+    </>
+  );
+};
+```
+
+Multiple calls in the same component each return a distinct ID:
+
+```tsx
+const Form = () => {
+  const nameId = useId();  // ":r0:"
+  const emailId = useId(); // ":r1:"
+  // ...
+};
+```
+
+---
+
+### useContext / createContext
+
+Share values through the tree without prop drilling.
+
+```tsx
+import { createContext, useContext } from "@rectify-dev/core";
+
+const ThemeContext = createContext<"light" | "dark">("light");
+
+const App = () => (
+  <ThemeContext.Provider value="dark">
+    <Page />
+  </ThemeContext.Provider>
+);
+
+const Page = () => {
+  const theme = useContext(ThemeContext);
+  return <div className={theme}>...</div>;
+};
+```
+
+---
+
+## Class Components
+
+Extend `Component<Props, State>` to write class-based components.
+
+```tsx
+import { Component } from "@rectify-dev/core";
+
+interface Props { title: string }
+interface State { open: boolean }
+
+class Accordion extends Component<Props, State> {
+  state = { open: false };
+
+  componentDidMount() {
+    console.log("mounted");
+  }
+
+  componentDidUpdate(prevProps: Props, prevState: State) {
+    // prevProps and prevState are correct snapshots from before the render
+    if (prevState.open !== this.state.open) {
+      console.log("toggled", this.state.open);
+    }
+  }
+
+  componentWillUnmount() {
+    console.log("unmounted");
+  }
+
+  shouldComponentUpdate(nextProps: Props, nextState: State) {
+    // return false to skip re-render
+    return nextState.open !== this.state.open || nextProps.title !== this.props.title;
+  }
+
+  render() {
+    return (
+      <div>
+        <button onClick={() => this.setState({ open: !this.state.open })}>
+          {this.props.title}
+        </button>
+        {this.state.open && <div>content</div>}
+      </div>
+    );
+  }
+}
+```
+
+`setState` accepts a partial state object or an updater function:
+
+```tsx
+this.setState({ count: 42 });
+this.setState(prev => ({ count: prev.count + 1 }));
+```
+
+---
+
+## memo
+
+Prevents re-renders when props are shallowly equal.
+
+```tsx
+import { memo } from "@rectify-dev/core";
+
+const Item = memo(({ name }: { name: string }) => <li>{name}</li>);
+
+// Custom comparator
+const Item = memo(
+  ({ value }: { value: number }) => <span>{value}</span>,
+  (prev, next) => prev.value === next.value,
+);
+```
+
+---
+
+## lazy + Suspense
+
+Code-split a component and show a fallback while it loads.
+
+```tsx
+import { lazy, Suspense } from "@rectify-dev/core";
+
+const HeavyChart = lazy(() => import("./HeavyChart"));
+
+const Dashboard = () => (
+  <Suspense fallback={<div>Loading chart...</div>}>
+    <HeavyChart data={data} />
+  </Suspense>
+);
+```
+
+Multiple lazy components under one `Suspense` boundary are all handled — the fallback shows until every child resolves.
+
+---
+
+## Fragment
+
+Group children without adding a DOM node.
+
+```tsx
+import { Fragment } from "@rectify-dev/core";
+
+const Rows = () => (
+  <Fragment>
+    <tr><td>A</td></tr>
+    <tr><td>B</td></tr>
+  </Fragment>
+);
+
+// Shorthand (requires Babel / TSX support)
+const Rows = () => (
+  <>
+    <tr><td>A</td></tr>
+    <tr><td>B</td></tr>
+  </>
+);
+```
+
+---
+
+## TypeScript
+
+All JSX element attributes, event handlers, CSS properties, and ARIA attributes are fully typed. Import convenience types directly from the package:
+
+```tsx
+import type {
+  FC,
+  RectifyNode,
+  CSSProperties,
+  HTMLAttributes,
+  InputHTMLAttributes,
+  SuspenseProps,
+  RefObject,
+  RectifyContext,
+  Reducer,
+  Dispatch,
+  SyntheticMouseEvent,
+  SyntheticKeyboardEvent,
+  // ... and all other synthetic event types
+} from "@rectify-dev/core";
+```
+
+### `key` prop
+
+The `key` prop is accepted on every element (host and component) without appearing in the component's own props type:
+
+```tsx
+items.map(item => <Row key={item.id} data={item} />);
+```
+
+---
+
+## License
+
+MIT

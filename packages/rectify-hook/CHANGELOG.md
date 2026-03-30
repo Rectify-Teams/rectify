@@ -1,5 +1,11 @@
 # @rectify-dev/hook
 
+## 1.2.0
+
+### Minor Changes
+
+- **`useId()`** — returns a stable, globally unique string ID that is generated once on mount and returned unchanged on every subsequent render. Format: `":rXX:"` (base-36 counter). Each `useId()` call within a component gets its own independent ID.
+
 ## 1.1.0
 
 ### Minor Changes

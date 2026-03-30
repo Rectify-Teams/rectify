@@ -1,5 +1,23 @@
 # @rectify-dev/reconciler
 
+## 1.1.0
+
+### Minor Changes
+
+- **`lazy()` + `Suspense`** — `LazyComponent` and `SuspenseComponent` work tags; work loop catches thrown thenables and suspends the nearest `SuspenseComponent` boundary; resolves via `handleSuspendedWork` scheduling a `DefaultLane` re-render.
+
+- **Class components** — `ClassComponent` work tag; `beginWork` mounts instances, flushes `_pendingStateQueue`, snapshots `_prevProps`/`_prevState` before render; `commitWork` fires `componentDidMount` / `componentDidUpdate(prevProps, prevState)` / `componentWillUnmount` at the correct times.
+
+- **Type-based unkeyed reconciliation** — `reconcileKeyed` now partitions old fibers into `keyedMap` (explicit key) and `unkeyedByType` (type queue). Unkeyed children are matched by component type in order of appearance rather than by position index, preventing unmount/remount when a sibling is conditionally inserted.
+
+- **`getHostSibling` PlacementFlag skip** — siblings being placed in the same commit pass are excluded from `insertBefore` reference search.
+
+- **`insertIntoParent` multi-level climb** — walks all non-host ancestor levels to find the correct `insertBefore` anchor for deeply nested components (e.g. inside `Suspense`).
+
+- **Updated dependencies**
+  - @rectify-dev/hook@1.2.0
+  - @rectify-dev/shared@2.1.0
+
 ## 1.0.1
 
 ### Patch Changes

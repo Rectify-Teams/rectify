@@ -1,5 +1,29 @@
 # @rectify/core
 
+## 2.2.0
+
+### Minor Changes
+
+- **`lazy()` + `Suspense`** — code-split any component with `lazy(() => import('./MyComponent'))` and wrap it in `<Suspense fallback={<Loading />}>` to show a placeholder while the module loads.
+
+- **Class components** — extend `Component<Props, State>` to write class-based components with full lifecycle support:
+  - `componentDidMount()` — fires once after the first commit
+  - `componentDidUpdate(prevProps, prevState)` — fires after every re-render; `prevProps`/`prevState` are correct snapshots taken before the render
+  - `componentWillUnmount()` — fires before the component is removed from the DOM
+  - `shouldComponentUpdate(nextProps, nextState)` — return `false` to skip re-rendering
+  - `setState(partial | updater)` — queued state updates (safe to call multiple times synchronously)
+
+- **`useId()`** — returns a stable, globally unique string ID (e.g. `":r0:"`) that never changes across re-renders. Useful for linking form labels to inputs via `id`/`htmlFor`.
+
+- **`JSX.IntrinsicAttributes`** — `key` is now accepted on every JSX element (host and component) without TypeScript errors.
+
+- **Reconciler: type-based unkeyed matching** — sibling components without explicit `key` props are now matched by component type rather than position. A component that shifts position because a sibling is conditionally inserted before it will be updated, not remounted.
+
+- **Bug fixes**
+  - `componentDidUpdate` now receives the correct `prevState` (state before the render, not after)
+  - Class component bailout: props-unchanged + no queued state → skip re-render and lifecycle
+  - Lazy component DOM placement: correctly uses `insertBefore` relative to already-committed siblings on first resolution
+
 ## 2.1.0
 
 ### Minor Changes
