@@ -163,6 +163,89 @@ export interface HTMLAttributes extends RectifyEventHandlers, AriaAttributes {
 
 // ─── Element-specific attributes ─────────────────────────────────────────────
 
+// ─── SVG attributes ───────────────────────────────────────────────────────────
+
+export interface SVGAttributes extends HTMLAttributes {
+  // Geometry
+  viewBox?: string;
+  preserveAspectRatio?: string;
+  x?: number | string;
+  y?: number | string;
+  width?: number | string;
+  height?: number | string;
+  cx?: number | string;
+  cy?: number | string;
+  r?: number | string;
+  rx?: number | string;
+  ry?: number | string;
+  x1?: number | string;
+  y1?: number | string;
+  x2?: number | string;
+  y2?: number | string;
+  d?: string;
+  points?: string;
+  dx?: number | string;
+  dy?: number | string;
+  rotate?: number | string;
+  // Presentation
+  fill?: string;
+  fillOpacity?: number | string;
+  fillRule?: "nonzero" | "evenodd" | "inherit";
+  stroke?: string;
+  strokeWidth?: number | string;
+  strokeOpacity?: number | string;
+  strokeLinecap?: "butt" | "round" | "square" | "inherit";
+  strokeLinejoin?: "miter" | "round" | "bevel" | "inherit";
+  strokeDasharray?: string;
+  strokeDashoffset?: number | string;
+  opacity?: number | string;
+  visibility?: string;
+  transform?: string;
+  clipPath?: string;
+  clipRule?: "nonzero" | "evenodd" | "inherit";
+  mask?: string;
+  filter?: string;
+  // Text
+  textAnchor?: string;
+  dominantBaseline?: string;
+  fontFamily?: string;
+  fontSize?: number | string;
+  fontStyle?: string;
+  fontWeight?: number | string;
+  letterSpacing?: number | string;
+  // Gradient / Pattern
+  gradientUnits?: string;
+  gradientTransform?: string;
+  patternUnits?: string;
+  patternTransform?: string;
+  spreadMethod?: "pad" | "reflect" | "repeat";
+  offset?: number | string;
+  stopColor?: string;
+  stopOpacity?: number | string;
+  // Marker
+  markerWidth?: number | string;
+  markerHeight?: number | string;
+  markerUnits?: string;
+  refX?: number | string;
+  refY?: number | string;
+  orient?: string;
+  // Filter primitives
+  in?: string;
+  in2?: string;
+  result?: string;
+  mode?: string;
+  baseFrequency?: number | string;
+  numOctaves?: number;
+  seed?: number;
+  stitchTiles?: string;
+  stdDeviation?: number | string;
+  // Namespace
+  xmlns?: string;
+  xmlnsXlink?: string;
+  href?: string;
+  xlinkHref?: string;
+}
+
 export interface AnchorHTMLAttributes extends HTMLAttributes {
   href?: string;
   target?: "_self" | "_blank" | "_parent" | "_top" | (string & {});
@@ -554,6 +637,44 @@ export interface RectifyIntrinsicElements {
   details: DetailsHTMLAttributes;
   summary: HTMLAttributes;
   dialog: DialogHTMLAttributes;
+
+  // SVG
+  svg: SVGAttributes;
+  circle: SVGAttributes;
+  ellipse: SVGAttributes;
+  line: SVGAttributes;
+  path: SVGAttributes;
+  polygon: SVGAttributes;
+  polyline: SVGAttributes;
+  rect: SVGAttributes;
+  g: SVGAttributes;
+  defs: SVGAttributes;
+  use: SVGAttributes;
+  symbol: SVGAttributes;
+  clipPath: SVGAttributes;
+  mask: SVGAttributes;
+  pattern: SVGAttributes;
+  linearGradient: SVGAttributes;
+  radialGradient: SVGAttributes;
+  stop: SVGAttributes;
+  marker: SVGAttributes;
+  image: SVGAttributes & { preserveAspectRatio?: string };
+  text: SVGAttributes;
+  tspan: SVGAttributes;
+  textPath: SVGAttributes & { startOffset?: number | string; method?: string; spacing?: string };
+  foreignObject: SVGAttributes;
+  animate: SVGAttributes;
+  animateMotion: SVGAttributes;
+  animateTransform: SVGAttributes;
+  feBlend: SVGAttributes;
+  feColorMatrix: SVGAttributes & { type?: string; values?: string };
+  feComposite: SVGAttributes & { operator?: string; k1?: number; k2?: number; k3?: number; k4?: number };
+  feGaussianBlur: SVGAttributes;
+  feOffset: SVGAttributes;
+  feMerge: SVGAttributes;
+  feMergeNode: SVGAttributes;
+  feTurbulence: SVGAttributes;
+  feFlood: SVGAttributes & { floodColor?: string; floodOpacity?: number | string };
 
   // Catch-all
   [elemName: string]: HTMLAttributes;

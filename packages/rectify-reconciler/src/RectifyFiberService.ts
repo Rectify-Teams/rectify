@@ -66,12 +66,28 @@ const getFiberTagFromElement = (element: RectifyElement) => {
   }
 };
 
+const SVG_TAGS = new Set([
+  "svg", "circle", "ellipse", "line", "path", "polygon", "polyline", "rect",
+  "g", "defs", "use", "symbol", "clipPath", "mask", "pattern",
+  "linearGradient", "radialGradient", "stop", "marker", "image",
+  "text", "tspan", "textPath", "foreignObject",
+  "animate", "animateMotion", "animateTransform",
+  "feBlend", "feColorMatrix", "feComposite", "feGaussianBlur",
+  "feOffset", "feMerge", "feMergeNode", "feTurbulence", "feFlood",
+]);
+
+const SVG_NS = "http://www.w3.org/2000/svg";
+
 const createDomElementFromFiber = (fiber: Fiber): Node => {
   switch (fiber.workTag) {
     case HostText:
       return document.createTextNode(fiber.pendingProps);
-    default:
-      return document.createElement(fiber.type as string);
+    default: {
+      const tag = fiber.type as string;
+      return SVG_TAGS.has(tag)
+        ? document.createElementNS(SVG_NS, tag)
+        : document.createElement(tag);
+    }
   }
 };
 
