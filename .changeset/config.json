@@ -5,9 +5,11 @@
   "fixed": [
     [
       "@rectify-dev/core",
+      "@rectify-dev/shared",
       "@rectify-dev/babel-transform-rectify-jsx",
       "@rectify-dev/vite-plugin",
-      "@rectify-dev/create-rectify-app"
+      "@rectify-dev/create-rectify-app",
+      "@rectify-dev/router"
     ]
   ],
   "linked": [],

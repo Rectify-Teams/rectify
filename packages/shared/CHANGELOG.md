@@ -1,5 +1,12 @@
 # @rectify-dev/shared
 
+## 2.3.0
+
+### Minor Changes
+
+- **Version alignment** — aligned to `2.3.0` unified release.
+- **SVG types** — added `SVGAttributes` interface and all SVG intrinsic elements (`svg`, `path`, `circle`, `g`, `defs`, `use`, filter primitives, etc.) to `RectifyIntrinsicElements`.
+
 ## 2.1.0
 
 ### Minor Changes

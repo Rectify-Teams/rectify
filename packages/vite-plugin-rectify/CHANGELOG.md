@@ -1,5 +1,11 @@
 # @rectify/vite-plugin
 
+## 2.3.0
+
+### Patch Changes
+
+- Version alignment — aligned to `2.3.0` unified release.
+
 ## 2.1.0
 
 ## 2.0.0

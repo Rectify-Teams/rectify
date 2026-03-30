@@ -1,5 +1,14 @@
 # @rectify-dev/reconciler
 
+## 2.3.0
+
+### Minor Changes
+
+- **Version alignment** — aligned to `2.3.0` unified release.
+- **`RectifyFiberBeginWork`** — extracted from work loop into its own module; `beginWork` now handles `MemoComponent`, `FunctionComponent`, `ClassComponent`, `ContextProvider`, `SuspenseComponent`, and `LazyComponent` work tags.
+- **Automatic function-component bailout** — any function component skips reconciliation when `isUpdate && hasNoPendingWork && shallowEqual(memoizedProps, pendingProps)`.
+- **Lazy/Suspense fix** — `isSuspended` is marked on both the WIP fiber and its `alternate` so suspended state survives the WIP→current swap at commit.
+
 ## 1.1.0
 
 ### Minor Changes

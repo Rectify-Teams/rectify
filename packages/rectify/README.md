@@ -1,6 +1,23 @@
 # @rectify-dev/core
 
-A lightweight React-like UI library built from scratch with a fiber-based reconciler, concurrent rendering, and a full hooks API.
+[![npm](https://img.shields.io/npm/v/@rectify-dev/core)](https://www.npmjs.com/package/@rectify-dev/core) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](../../LICENSE)
+
+A lightweight React-like UI library built from scratch — fiber reconciler, concurrent rendering, class components, a complete hooks API, lazy/Suspense, and context. All with zero React dependencies and **~10 KB gzipped**.
+
+| Feature | Status |
+|---------|--------|
+| Function components + auto-bailout | ✅ |
+| Class components (full lifecycle) | ✅ |
+| `useState`, `useReducer` | ✅ |
+| `useEffect`, `useLayoutEffect` | ✅ |
+| `useRef` (object + callback refs) | ✅ |
+| `useMemo`, `useCallback` | ✅ |
+| `useContext` + `createContext` | ✅ |
+| `useId`, `useDeferredValue` | ✅ |
+| `memo()` with custom comparator | ✅ |
+| `lazy()` + `<Suspense>` | ✅ |
+| SVG elements | ✅ |
+| Client-side router | [`@rectify-dev/router`](../../libs/rectify-router) |
 
 ---
 

@@ -1,5 +1,11 @@
 # @rectify-dev/hook
 
+## 2.3.0
+
+### Patch Changes
+
+- Version alignment — aligned to `2.3.0` unified release.
+
 ## 1.2.0
 
 ### Minor Changes
