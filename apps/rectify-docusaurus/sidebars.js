@@ -39,7 +39,6 @@ const sidebars = {
         "learn/use-reducer",
         "learn/use-context",
         "learn/use-id",
-        "learn/use-deferred-value",
       ],
     },
     {
@@ -80,7 +79,6 @@ const sidebars = {
         "api/hooks/use-callback",
         "api/hooks/use-context",
         "api/hooks/use-id",
-        "api/hooks/use-deferred-value",
       ],
     },
     {
