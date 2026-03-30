@@ -1,0 +1,32 @@
+{
+  "name": "@rectify-dev/router",
+  "version": "1.0.0",
+  "description": "Client-side router for Rectify — inspired by React Router v6",
+  "license": "MIT",
+  "type": "module",
+  "files": ["dist"],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch --no-clean"
+  },
+  "peerDependencies": {
+    "@rectify-dev/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@rectify-dev/core": "workspace:*",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
+  }
+}

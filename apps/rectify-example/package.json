@@ -8,6 +8,9 @@
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
+  "dependencies": {
+    "@rectify-dev/router": "workspace:*"
+  },
   "devDependencies": {
     "@rectify-dev/core": "workspace:*",
     "@rectify-dev/vite-plugin": "workspace:*",
