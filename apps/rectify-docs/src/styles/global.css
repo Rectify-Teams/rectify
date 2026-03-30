@@ -1,0 +1,62 @@
+@import "tailwindcss";
+@import "highlight.js/styles/atom-one-dark.css";
+
+@theme {
+  --font-family-sans: "Inter", system-ui, sans-serif;
+  --font-family-mono: "JetBrains Mono", "Fira Code", monospace;
+
+  --color-accent:       #7c6af7;
+  --color-accent-light: #a78bfa;
+  --color-surface:      #0d0d1a;
+  --color-raised:       #12121e;
+  --color-border:       rgba(255,255,255,0.07);
+
+  --animate-fade-in:    fade-in    0.5s ease-out both;
+  --animate-slide-up:   slide-up   0.6s ease-out both;
+  --animate-stagger-1:  slide-up   0.6s 0.1s ease-out both;
+  --animate-stagger-2:  slide-up   0.6s 0.2s ease-out both;
+  --animate-stagger-3:  slide-up   0.6s 0.3s ease-out both;
+  --animate-stagger-4:  slide-up   0.6s 0.4s ease-out both;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+/* ── Base ─────────────────────────────────────────────── */
+html  { scroll-behavior: smooth; }
+body  { background: #08080f; color: #e2e8f0; font-family: var(--font-family-sans); -webkit-font-smoothing: antialiased; }
+
+a { text-decoration: none; }
+
+/* ── highlight.js override ───────────────────────────── */
+.hljs             { background: transparent !important; padding: 0 !important; }
+pre               { font-family: var(--font-family-mono) !important; }
+
+/* ── Sidebar active link ─────────────────────────────── */
+.sidebar-active {
+  color: var(--color-accent-light) !important;
+  background: rgba(124, 106, 247, 0.1) !important;
+  border-right: 2px solid var(--color-accent);
+}
+
+/* ── Header active link ──────────────────────────────── */
+.header-active { color: #fff !important; }
+
+/* ── Prose typography ────────────────────────────────── */
+.prose h1  { font-size: 2rem;   font-weight: 700; line-height: 1.2; color: #f1f5f9; margin-bottom: 0.75rem; }
+.prose h2  { font-size: 1.35rem; font-weight: 700; line-height: 1.3; color: #e2e8f0; margin: 2.5rem 0 0.75rem; border-top: 1px solid rgba(255,255,255,0.07); padding-top: 2rem; }
+.prose h3  { font-size: 1.1rem;  font-weight: 600; color: #cbd5e1; margin: 1.75rem 0 0.5rem; }
+.prose p   { color: #94a3b8; line-height: 1.8; margin-bottom: 1rem; }
+.prose ul  { color: #94a3b8; line-height: 1.8; padding-left: 1.5rem; margin-bottom: 1rem; list-style: disc; }
+.prose li  { margin-bottom: 0.3rem; }
+.prose code { font-family: var(--font-family-mono); font-size: 0.85em; background: rgba(124,106,247,0.12); color: #a78bfa; padding: 0.15em 0.45em; border-radius: 4px; }
+.prose pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+.prose a   { color: var(--color-accent-light); }
+.prose a:hover { text-decoration: underline; }
