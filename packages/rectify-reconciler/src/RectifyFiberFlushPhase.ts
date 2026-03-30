@@ -47,7 +47,7 @@ export const schedulePassiveEffects = (): void => {
 /**
  * Flush layout effects synchronously, then re-render and re-commit any state
  * updates triggered inside them – looping until stable.  This mirrors React's
- * behaviour where setState inside useLayoutEffect causes a synchronous
+ * behavior where setState inside useLayoutEffect causes a synchronous
  * re-render that the browser never sees as an intermediate frame.
  */
 export const flushLayoutPhase = (fiberRoot: FiberRoot): void => {
