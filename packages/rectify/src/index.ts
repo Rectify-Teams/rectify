@@ -14,6 +14,7 @@ export {
   useRef,
   useMemo,
   useCallback,
+  useId,
   createContext,
   useContext,
 } from "@rectify-dev/hook";

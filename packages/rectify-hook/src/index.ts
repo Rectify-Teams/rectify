@@ -11,3 +11,4 @@ export { default as useCallback } from "./RectifyHookUseCallback";
 export { createContext, useContext, notifyContextConsumers, setMarkFiberDirty, clearContextSubscriptions } from "./RectifyHookContext";
 export type { RectifyContext } from "./RectifyHookContext";
 export { setScheduleRerender, scheduleRerender } from "./RectifyHookRenderingFiber";
+export { default as useId } from "./RectifyHookUseId";
