@@ -33,7 +33,7 @@ npm run dev
   <TabItem value="pnpm" label="pnpm">
 
 ```bash
-pnpm create rectify-app my-app
+pnpm create @rectify-dev/rectify-app my-app
 cd my-app
 pnpm install
 pnpm dev
@@ -43,7 +43,7 @@ pnpm dev
   <TabItem value="yarn" label="yarn">
 
 ```bash
-yarn create rectify-app my-app
+yarn create @rectify-dev/rectify-app my-app
 cd my-app
 yarn
 yarn dev
