@@ -1,4 +1,4 @@
-import { Fiber } from "@rectify-dev/shared";
+import { Fiber, isFunction } from "@rectify-dev/shared";
 
 // ---------------------------------------------------------------------------
 // attachRef
@@ -13,9 +13,9 @@ export const attachRef = (wip: Fiber): void => {
   const ref = wip.pendingProps?.ref;
   if (!ref) return;
 
-  if (typeof ref === "function") {
+  if (isFunction(ref)) {
     const cleanup = ref(wip.stateNode);
-    wip.refCleanup = typeof cleanup === "function" ? cleanup : null;
+    wip.refCleanup = isFunction(cleanup) ? cleanup : null;
   } else if (typeof ref === "object" && "current" in ref) {
     ref.current = wip.stateNode;
   }

@@ -5,3 +5,5 @@ export const HostRoot /**           */ = Symbol.for("rectify.host_root");
 export const FragmentComponent /**  */ = Symbol.for("rectify.fragment_component");
 export const ContextProvider /**    */ = Symbol.for("rectify.context_provider");
 export const MemoComponent /**      */ = Symbol.for("rectify.memo_component");
+export const LazyComponent /**      */ = Symbol.for("rectify.lazy_component");
+export const SuspenseComponent /**  */ = Symbol.for("rectify.suspense_component");

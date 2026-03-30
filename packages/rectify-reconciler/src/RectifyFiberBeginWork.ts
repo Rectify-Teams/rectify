@@ -1,4 +1,4 @@
-import { Fiber, isFunction, shallowEqual } from "@rectify-dev/shared";
+import { Fiber, isFunction, shallowEqual, LazyComponent as LazyComponentType } from "@rectify-dev/shared";
 import {
   FunctionComponent,
   HostComponent,
@@ -6,11 +6,14 @@ import {
   ContextProvider,
   MemoComponent,
   FragmentComponent,
+  LazyComponent,
+  SuspenseComponent,
 } from "./RectifyFiberWorkTags";
 import { withHooks, notifyContextConsumers } from "@rectify-dev/hook";
 import { createWorkInProgress } from "./RectifyFiber";
 import { getCurrentLanePriority } from "./RectifyFiberRenderPriority";
 import { reconcileChildren } from "./RectifyFiberReconcileChildren";
+import { isSuspendedBoundary } from "./RectifyFiberSuspense";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -145,6 +148,50 @@ export const beginWork = (wip: Fiber): Fiber | null => {
         }
       }
       break;
+    }
+
+    case SuspenseComponent: {
+      // When suspended, render fallback; otherwise render children.
+      const children = isSuspendedBoundary(wip)
+        ? wip.pendingProps?.fallback
+        : wip.pendingProps?.children;
+      reconcileChildren(wip, children);
+      break;
+    }
+
+    case LazyComponent: {
+      const lazy = wip.type as unknown as LazyComponentType<any>;
+
+      if (lazy._status === "resolved") {
+        // Module loaded — render the component normally.
+        renderFunctionComponent(wip, lazy._result as Function);
+        break;
+      }
+
+      if (lazy._status === "rejected") {
+        // Module failed — propagate the error (error boundary territory).
+        throw lazy._result as Error;
+      }
+
+      // "uninitialized" or "pending": kick off / await the load and suspend.
+      if (lazy._status === "uninitialized") {
+        lazy._status = "pending";
+        lazy._promise = lazy._factory().then(
+          (module: any) => {
+            lazy._status = "resolved";
+            // Support both `export default` and bare-default modules.
+            lazy._result = (module as any)?.default ?? module;
+          },
+          (error: unknown) => {
+            lazy._status = "rejected";
+            lazy._result = error as Error;
+          },
+        );
+      }
+
+      // Throwing a thenable signals the work loop to suspend the nearest
+      // Suspense boundary and schedule a re-render when the promise resolves.
+      throw lazy._promise;
     }
   }
 

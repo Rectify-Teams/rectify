@@ -15,7 +15,13 @@ import type {
   SyntheticTransitionEvent,
   SyntheticEvent,
 } from "./RectifySyntheticEvent";
+// ─── Suspense ────────────────────────────────────────────────────────────────────────────────
 
+export type SuspenseProps = {
+  /** Rendered while any child (or lazy component) is loading. */
+  fallback: RectifyNode;
+  children?: RectifyNode;
+};
 // ─── CSS ─────────────────────────────────────────────────────────────────────
 
 export type CSSProperties = Partial<

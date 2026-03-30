@@ -8,6 +8,8 @@ export {
   type RectifyKey,
   type RectifyText,
   type RectifyTypeJsx,
+  type LazyComponent,
+  type LazyStatus,
 } from "./RectifyTypes";
 
 export { type Fiber, type Hook, type UpdateQueue } from "./RectifyFiber";
@@ -50,4 +52,5 @@ export {
   type VideoHTMLAttributes,
   type AudioHTMLAttributes,
   type IframeHTMLAttributes,
+  type SuspenseProps,
 } from "./RectifyJsxTypes";

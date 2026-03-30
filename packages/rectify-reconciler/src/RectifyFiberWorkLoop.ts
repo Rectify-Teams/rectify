@@ -12,6 +12,11 @@ import {
   completeUnitOfWork,
   bubbleFlagsToRoot,
 } from "./RectifyFiberCompleteWork";
+import {
+  isThenable,
+  findNearestSuspenseBoundary,
+  handleSuspendedWork,
+} from "./RectifyFiberSuspense";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -46,8 +51,21 @@ export const workLoop = (wipRoot: Fiber): void => {
   let workInProgress: Fiber | null = wipRoot;
 
   while (workInProgress) {
-    const next = beginWork(workInProgress);
-    workInProgress = next ?? completeUnitOfWork(workInProgress, wipRoot);
+    try {
+      const next = beginWork(workInProgress);
+      workInProgress = next ?? completeUnitOfWork(workInProgress, wipRoot);
+    } catch (thrown) {
+      if (isThenable(thrown) && workInProgress) {
+        const boundary = findNearestSuspenseBoundary(workInProgress);
+        if (boundary) {
+          handleSuspendedWork(boundary, thrown);
+          // Re-process the boundary, this time rendering the fallback.
+          workInProgress = boundary;
+          continue;
+        }
+      }
+      throw thrown;
+    }
   }
 };
 
@@ -64,8 +82,21 @@ export const workLoopConcurrent = (wipRoot: Fiber): boolean => {
   clearResumeCursor();
 
   while (workInProgress && !shouldYield()) {
-    const next = beginWork(workInProgress);
-    workInProgress = next ?? completeUnitOfWork(workInProgress, wipRoot);
+    try {
+      const next = beginWork(workInProgress);
+      workInProgress = next ?? completeUnitOfWork(workInProgress, wipRoot);
+    } catch (thrown) {
+      if (isThenable(thrown) && workInProgress) {
+        const boundary = findNearestSuspenseBoundary(workInProgress);
+        if (boundary) {
+          handleSuspendedWork(boundary, thrown);
+          // Re-process the boundary, this time rendering the fallback.
+          workInProgress = boundary;
+          continue;
+        }
+      }
+      throw thrown;
+    }
   }
 
   if (workInProgress !== null) {

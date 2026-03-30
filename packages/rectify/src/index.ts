@@ -3,6 +3,8 @@ export { createRoot, SyntheticEvent } from "@rectify-dev/dom";
 export { jsx, Fragment } from "./RectifyJsx";
 export { memo } from "./RectifyMemo";
 export type { MemoComponent } from "./RectifyMemo";
+export { lazy } from "./RectifyLazy";
+export { Suspense } from "./RectifySuspense";
 export {
   useState,
   useReducer,
@@ -36,6 +38,7 @@ export type {
   VideoHTMLAttributes,
   AudioHTMLAttributes,
   IframeHTMLAttributes,
+  SuspenseProps,
   SyntheticEvent as SyntheticEventType,
   SyntheticMouseEvent,
   SyntheticKeyboardEvent,

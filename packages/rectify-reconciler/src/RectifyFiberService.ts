@@ -2,7 +2,6 @@ import {
   Fiber,
   isFunction,
   isPlainObject,
-  isTextNode,
   omit,
   RECTIFY_ELEMENT_TYPE,
   RECTIFY_FRAGMENT_TYPE,
@@ -18,6 +17,8 @@ import {
   HostText,
   ContextProvider,
   MemoComponent,
+  LazyComponent,
+  SuspenseComponent,
 } from "./RectifyFiberWorkTags";
 
 const addFlagToFiber = (fiber: Fiber, flag: number): void => {
@@ -43,6 +44,12 @@ const getFiberTagFromElement = (element: RectifyElement) => {
       }
       if (isFunction(element.type) && (element.type as any)?._isMemo === true) {
         return MemoComponent;
+      }
+      if ((element.type as any)?._isSuspense === true) {
+        return SuspenseComponent;
+      }
+      if ((element.type as any)?._isLazy === true) {
+        return LazyComponent;
       }
       return isFunction(element.type) ? FunctionComponent : HostComponent;
     case RECTIFY_TEXT_TYPE:
