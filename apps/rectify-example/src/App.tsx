@@ -1,15 +1,8 @@
-import {
-  lazy,
-  Suspense,
-  useState,
-  Component,
-  memo,
-  useEffect,
-} from "@rectify-dev/core";
+import { lazy, Suspense, useState, Component } from "@rectify-dev/core";
 
 const LazyChild = lazy(() => import("./LazyChild"));
 
-class Counter extends Component<{ mount: boolean }, { count: number }> {
+class Counter extends Component<{}, { count: number }> {
   state = { count: 0 };
 
   componentDidMount() {
@@ -25,7 +18,6 @@ class Counter extends Component<{ mount: boolean }, { count: number }> {
   }
 
   render() {
-    console.log("Counter render", { mount: this.props.mount });
     return (
       <button onClick={() => this.setState({ count: this.state.count + 1 })}>
         {this.state.count}{" "}
@@ -52,7 +44,7 @@ const App = () => {
         </Suspense>
       )}
       <A />
-      <Counter mount={mount} />
+      <Counter />
     </div>
   );
 };
