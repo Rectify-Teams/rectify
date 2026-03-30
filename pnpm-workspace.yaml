@@ -4,4 +4,6 @@ packages:
   - libs/*
 
 ignoredBuiltDependencies:
+  - core-js
+  - core-js-pure
   - esbuild
