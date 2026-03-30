@@ -14,7 +14,7 @@
   },
   "scripts": {
     "build": "tsup",
-    "dev": "tsup --watch"
+    "dev": "tsup --watch --no-clean"
   },
   "dependencies": {
     "@rectify-dev/shared": "workspace:*"

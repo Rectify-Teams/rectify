@@ -21,7 +21,7 @@
   },
   "scripts": {
     "build": "tsup",
-    "dev": "tsup --watch"
+    "dev": "tsup --watch --no-clean"
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",

@@ -24,7 +24,7 @@
   },
   "scripts": {
     "build": "tsup",
-    "dev": "tsup --watch"
+    "dev": "tsup --watch --no-clean"
   },
   "devDependencies": {
     "tsup": "^8.5.1",

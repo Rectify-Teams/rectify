@@ -21,7 +21,7 @@
   },
   "scripts": {
     "build": "tsup",
-    "dev": "tsup --watch"
+    "dev": "tsup --watch --no-clean"
   },
   "dependencies": {
     "vite-plugin-babel": "^1.6.0"
