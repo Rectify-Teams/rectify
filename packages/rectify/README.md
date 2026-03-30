@@ -4,6 +4,33 @@ A lightweight React-like UI library built from scratch with a fiber-based reconc
 
 ---
 
+## Quick Start
+
+Scaffold a new project with one command — no config needed:
+
+```bash
+# pnpm
+pnpm create @rectify-dev/rectify-app my-app
+
+# npm
+npm create @rectify-dev/rectify-app@latest my-app
+
+# yarn
+yarn create @rectify-dev/rectify-app my-app
+```
+
+Then:
+
+```bash
+cd my-app
+pnpm install
+pnpm dev
+```
+
+This scaffolds a Vite + TypeScript project pre-configured with the Rectify JSX runtime, `@rectify-dev/vite-plugin`, and a ready-to-edit `src/App.tsx`.
+
+---
+
 ## Installation
 
 ```bash
@@ -28,6 +55,7 @@ Configure your bundler to use the Rectify JSX runtime:
 
 ## Table of Contents
 
+- [Quick Start](#quick-start)
 - [Rendering](#rendering)
 - [Hooks](#hooks)
   - [useState](#usestate)
