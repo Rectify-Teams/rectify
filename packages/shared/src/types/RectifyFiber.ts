@@ -22,6 +22,8 @@ export type Fiber = {
   sibling: Fiber | null;
   return: Fiber | null;
   stateNode: Node | null;
+  /** For ClassComponent fibers: holds the class instance. */
+  classInstance: { render(): any; [key: string]: any } | null;
   deletions: Fiber[] | null;
   index: number;
 

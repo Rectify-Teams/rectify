@@ -20,6 +20,7 @@ export const createFiber = (
     sibling: null,
     return: null,
     stateNode: null,
+    classInstance: null,
     deletions: null,
     alternate: null,
 
@@ -62,6 +63,7 @@ export const createWorkInProgress = (current: Fiber, pendingProps: any) => {
 
   wip.memoizedProps = current.memoizedProps;
   wip.memoizedState = current.memoizedState;
+  wip.classInstance = current.classInstance;
   wip.refCleanup = current.refCleanup;
   wip.return = current.return;
   wip.child = current.child;

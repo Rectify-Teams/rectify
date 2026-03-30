@@ -8,6 +8,7 @@ import {
   FragmentComponent,
   LazyComponent,
   SuspenseComponent,
+  ClassComponent,
 } from "./RectifyFiberWorkTags";
 import { withHooks, notifyContextConsumers } from "@rectify-dev/hook";
 import { createWorkInProgress } from "./RectifyFiber";
@@ -25,6 +26,25 @@ const hasNoPendingWork = (wip: Fiber): boolean =>
 
 /** Returns true when this is an update (not a mount). */
 const isUpdate = (wip: Fiber): boolean => wip.alternate !== null;
+
+/**
+ * Applies all queued setState updates against `currentState` and returns the
+ * resulting next state.  Each functional updater receives the state produced
+ * by the previous updater in the same batch, matching React semantics.
+ */
+const flushStateQueue = <S, P>(
+  currentState: S,
+  props: P,
+  queue: Array<Partial<S> | ((s: S, p: P) => Partial<S>)>,
+): S => {
+  let state = currentState;
+  for (const update of queue) {
+    const partial =
+      typeof update === "function" ? update(state, props) : update;
+    state = { ...state, ...partial };
+  }
+  return state;
+};
 
 /**
  * Runs a function component (or memo-wrapped component) through hooks,
@@ -155,6 +175,72 @@ export const beginWork = (wip: Fiber): Fiber | null => {
       const children = isSuspendedBoundary(wip)
         ? wip.pendingProps?.fallback
         : wip.pendingProps?.children;
+      reconcileChildren(wip, children);
+      break;
+    }
+
+    case ClassComponent: {
+      const Ctor = wip.type as any;
+      const isMount = !wip.classInstance;
+
+      if (isMount) {
+        // First render: create the instance and wire setState → reconciler.
+        const instance = new Ctor(wip.pendingProps);
+        instance._fiber = wip;
+        wip.classInstance = instance;
+        // Flush any setState calls made inside the constructor.
+        if (instance._pendingStateQueue?.length) {
+          instance.state = flushStateQueue(
+            instance.state,
+            instance.props,
+            instance._pendingStateQueue,
+          );
+          instance._pendingStateQueue = [];
+        }
+      } else {
+        const instance = wip.classInstance!;
+
+        // Bailout: skip re-render when there is no queued state and the props
+        // are shallowly equal to what was rendered last time.
+        // We compare against instance.props (set at the end of every render)
+        // rather than wip.memoizedProps because memoizedProps is not kept in
+        // sync for non-host fibers.
+        if (
+          hasNoPendingWork(wip) &&
+          !instance._pendingStateQueue?.length &&
+          shallowEqual(instance.props, wip.pendingProps)
+        ) {
+          return cloneChildFibers(wip);
+        }
+
+        // 1. Snapshot the OLD values BEFORE touching anything.
+        instance._prevProps = instance.props;
+        instance._prevState = { ...instance.state };
+
+        // 2. Flush queued setState updates so instance.state is now NEW.
+        if (instance._pendingStateQueue?.length) {
+          instance.state = flushStateQueue(
+            instance.state,
+            wip.pendingProps,
+            instance._pendingStateQueue,
+          );
+          instance._pendingStateQueue = [];
+        }
+
+        instance.props = wip.pendingProps;
+        instance._fiber = wip;
+
+        // 3. Honour shouldComponentUpdate if defined.
+        if (
+          isUpdate(wip) &&
+          typeof instance.shouldComponentUpdate === "function" &&
+          !instance.shouldComponentUpdate(wip.pendingProps, instance.state)
+        ) {
+          return cloneChildFibers(wip);
+        }
+      }
+
+      const children = wip.classInstance!.render();
       reconcileChildren(wip, children);
       break;
     }

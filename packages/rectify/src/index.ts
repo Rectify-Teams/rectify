@@ -5,6 +5,7 @@ export { memo } from "./RectifyMemo";
 export type { MemoComponent } from "./RectifyMemo";
 export { lazy } from "./RectifyLazy";
 export { Suspense } from "./RectifySuspense";
+export { Component } from "./RectifyComponent";
 export {
   useState,
   useReducer,

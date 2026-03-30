@@ -14,4 +14,10 @@ export namespace JSX {
   export interface ElementChildrenAttribute {
     children: {};
   }
+  /** Props accepted on every element (host and component) without appearing
+   *  in the component's own props type. TypeScript strips these before passing
+   *  props to the component function / constructor. */
+  export interface IntrinsicAttributes {
+    key?: string | number | null;
+  }
 }

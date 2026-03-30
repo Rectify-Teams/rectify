@@ -83,28 +83,44 @@ const appendFiber = (
 };
 
 // ---------------------------------------------------------------------------
-// Keyed map helper
+// Keyed map helpers
 // ---------------------------------------------------------------------------
 
+type OldFiberStructures = {
+  /** Fibers that carry an explicit key — looked up by key. */
+  keyedMap: Map<string | number, Fiber>;
+  /**
+   * Fibers with no explicit key — grouped by type and consumed in order.
+   * Matching by type means a component that shifts position (e.g. because a
+   * sibling is conditionally inserted before it) is still reused rather than
+   * unmounted and remounted.
+   */
+  unkeyedByType: Map<unknown, Fiber[]>;
+};
+
 /**
- * Build a key→fiber map from the remaining unconsumed old fibers so
- * reconcileKeyed can do O(1) lookups. Keys fall back to positional index when absent.
+ * Partition remaining old fibers into keyed (explicit key) and unkeyed
+ * (matched by type in order of appearance) buckets.
  */
-const buildOldFiberMap = (
+const buildOldFiberStructures = (
   firstRemaining: Fiber | null,
-  startIndex: number,
-): Map<string | number, Fiber> => {
-  const map = new Map<string | number, Fiber>();
+): OldFiberStructures => {
+  const keyedMap = new Map<string | number, Fiber>();
+  const unkeyedByType = new Map<unknown, Fiber[]>();
   let fiber: Fiber | null = firstRemaining;
-  let i = startIndex;
 
   while (fiber) {
-    map.set(fiber.key ?? i, fiber);
+    if (fiber.key !== null && fiber.key !== undefined) {
+      keyedMap.set(fiber.key, fiber);
+    } else {
+      const pool = unkeyedByType.get(fiber.type);
+      if (pool) pool.push(fiber);
+      else unkeyedByType.set(fiber.type, [fiber]);
+    }
     fiber = fiber.sibling;
-    i++;
   }
 
-  return map;
+  return { keyedMap, unkeyedByType };
 };
 
 // ---------------------------------------------------------------------------
@@ -137,8 +153,9 @@ const reconcileSequential = (
         state.index++,
         state.wip,
       );
-    } else {
-      // Same key, different type — delete old and place new.
+    } else if (elementKey !== null) {
+      // Same explicit key, different type — the old fiber is definitively
+      // replaced; delete it and place the new one.
       addFlagToFiber(oldFiber, DeletionFlag);
       state.deletions.push(oldFiber);
       state.prev = appendFiber(
@@ -147,6 +164,10 @@ const reconcileSequential = (
         state.index++,
         state.wip,
       );
+    } else {
+      // Unkeyed type mismatch — stop and let reconcileKeyed match by type.
+      // Do NOT delete the old fiber here; it may match a later new element.
+      return { stoppedAt: i, oldFiber };
     }
 
     oldFiber = oldFiber.sibling;
@@ -157,16 +178,17 @@ const reconcileSequential = (
 
 /**
  * Keyed lookup — handles reordering, insertions, and removals.
- * Builds a key→fiber map from the remaining old fibers and resolves each new
- * element by key (falling back to index). Only runs when reconcileSequential
- * stopped before consuming all new elements.
+ * Fibers with explicit keys are matched by key.
+ * Fibers with no key are matched by type in order of appearance — this means
+ * a component that shifts position because a sibling is conditionally inserted
+ * before it is still reused rather than unmounted and remounted.
  */
 const reconcileKeyed = (
   state: ReconcileState,
   startAt: number,
   remainingOldFiber: Fiber | null,
 ): void => {
-  const oldFiberMap = buildOldFiberMap(remainingOldFiber, startAt);
+  const { keyedMap, unkeyedByType } = buildOldFiberStructures(remainingOldFiber);
 
   // lastPlacedIndex tracks the highest committed index we have seen.
   // Any reused fiber whose committed index is below it was moved rightward.
@@ -175,11 +197,23 @@ const reconcileKeyed = (
   for (let i = startAt; i < state.newElements.length; i++) {
     const element = state.newElements[i];
     const { key: elementKey = null, type: elementType } = element;
-    const mapKey = elementKey ?? i;
-    const matched = oldFiberMap.get(mapKey) ?? null;
 
-    if (matched && matched.type === elementType) {
-      oldFiberMap.delete(mapKey);
+    let matched: Fiber | null = null;
+
+    if (elementKey !== null) {
+      // Explicit key — look up by key.
+      const candidate = keyedMap.get(elementKey) ?? null;
+      if (candidate && candidate.type === elementType) {
+        keyedMap.delete(elementKey);
+        matched = candidate;
+      }
+    } else {
+      // No key — take the first queued fiber of the same type (if any).
+      const pool = unkeyedByType.get(elementType);
+      if (pool?.length) matched = pool.shift()!;
+    }
+
+    if (matched) {
       const newFiber = reuseOrCreate(matched, element, state.wip);
 
       if (matched.index < lastPlacedIndex) {
@@ -199,10 +233,16 @@ const reconcileKeyed = (
     }
   }
 
-  // Fibers left in the map have no matching new element — delete them.
-  for (const orphan of oldFiberMap.values()) {
+  // Delete all remaining unmatched fibers.
+  for (const orphan of keyedMap.values()) {
     addFlagToFiber(orphan, DeletionFlag);
     state.deletions.push(orphan);
+  }
+  for (const pool of unkeyedByType.values()) {
+    for (const orphan of pool) {
+      addFlagToFiber(orphan, DeletionFlag);
+      state.deletions.push(orphan);
+    }
   }
 };
 

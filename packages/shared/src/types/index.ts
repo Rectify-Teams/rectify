@@ -1,6 +1,7 @@
 export {
   type RectifyNode,
   type RectifyFunctionalComponent,
+  type RectifyClassComponent,
   type FC,
   type RectifyElement,
   type RectifyIgnorable,

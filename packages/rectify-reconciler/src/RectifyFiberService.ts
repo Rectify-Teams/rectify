@@ -12,6 +12,7 @@ import {
 import {
   FragmentComponent,
   FunctionComponent,
+  ClassComponent,
   HostComponent,
   HostRoot,
   HostText,
@@ -20,6 +21,7 @@ import {
   LazyComponent,
   SuspenseComponent,
 } from "./RectifyFiberWorkTags";
+import { PlacementFlag } from "./RectifyFiberFlags";
 
 const addFlagToFiber = (fiber: Fiber, flag: number): void => {
   if (hasFlagOnFiber(fiber, flag)) return;
@@ -50,6 +52,9 @@ const getFiberTagFromElement = (element: RectifyElement) => {
       }
       if ((element.type as any)?._isLazy === true) {
         return LazyComponent;
+      }
+      if ((element.type as any)?._isClassComponent === true) {
+        return ClassComponent;
       }
       return isFunction(element.type) ? FunctionComponent : HostComponent;
     case RECTIFY_TEXT_TYPE:
@@ -109,12 +114,18 @@ function findFirstHostNode(fiber: Fiber): Node | null {
  * Walks the fiber's siblings; for each sibling performs a full depth-first
  * search so arbitrarily nested FunctionComponent / FragmentComponent wrappers
  * are transparent.
+ * Siblings that carry PlacementFlag are skipped — their DOM nodes have not
+ * been committed yet and cannot serve as a valid insertBefore reference.
  */
 function getHostSibling(fiber: Fiber): Node | null {
   let sibling = fiber.sibling;
   while (sibling) {
-    const node = findFirstHostNode(sibling);
-    if (node) return node;
+    // Skip subtrees that are being placed in this same commit pass.
+    // Their stateNode exists but is not yet a child of the parent DOM.
+    if (!(sibling.flags & PlacementFlag)) {
+      const node = findFirstHostNode(sibling);
+      if (node) return node;
+    }
     sibling = sibling.sibling;
   }
 

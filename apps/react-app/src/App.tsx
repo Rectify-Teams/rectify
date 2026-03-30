@@ -1,25 +1,20 @@
-import { useLayoutEffect, useState } from "react";
+import { memo, useLayoutEffect, useState } from "react";
 
-const Tooltip = () => {
-  const [count, setCount] = useState(0);
-
-  useLayoutEffect(() => {
-    console.log("count", count);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (count > 3) setCount(0);
-  }, [count]);
+const Tooltip = memo(() => {
+  console.log("Tooltip");
 
   return (
     <div>
-      <div>{`Tooltip count: ${count}`}</div>
-      <button onClick={() => setCount((p) => p + 1)}>click</button>
+      <div>{`Tooltip count:`}</div>
     </div>
   );
-};
+});
 
 const App = () => {
+  const [mount, setMount] = useState(false);
   return (
-    <div id="root" className="hello">
+    <div id="root" className="hello" onClick={() => setMount(!mount)}>
+      {mount && <div>Mounted</div>}
       <Tooltip />
     </div>
   );

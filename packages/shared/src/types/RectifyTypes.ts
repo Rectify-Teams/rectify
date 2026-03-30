@@ -36,10 +36,14 @@ export type LazyComponent<T = any> = {
 
 export type RectifyFunctionalComponent<P = any> = (props: P) => RectifyNode;
 
+/** Constructor shape of a class component — anything with a `new` signature. */
+export type RectifyClassComponent<P = any> = new (props: P) => { render(): RectifyNode };
+
 export type RectifyTypeJsx<P = any> =
   | string
   | symbol
   | RectifyFunctionalComponent<P>
+  | RectifyClassComponent<P>
   | LazyComponent<any>
   | null;
 
