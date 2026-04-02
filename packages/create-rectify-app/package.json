@@ -1,6 +1,6 @@
 {
   "name": "@rectify-dev/create-rectify-app",
-  "version": "2.4.0",
+  "version": "2.4.1",
   "description": "Scaffold a new Rectify app instantly",
   "license": "MIT",
   "type": "module",
