@@ -33,3 +33,14 @@
 .alert--info   { --ifm-alert-border-color: #38bdf8; }
 .alert--caution { --ifm-alert-border-color: #f59e0b; }
 .alert--danger { --ifm-alert-border-color: #ef4444; }
+
+/* Full-width blog post pages */
+.blog-post-page .container {
+  max-width: 100%;
+}
+
+.blog-post-page article {
+  max-width: 860px;
+  margin-left: auto;
+  margin-right: auto;
+}
