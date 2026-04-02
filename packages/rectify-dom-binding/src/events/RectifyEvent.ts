@@ -6,6 +6,9 @@ import { allNativeEvents } from "./RectifyEventRegistry";
 const listeningMarker =
   "_rectifyEventListening$" + Math.random().toString(36).slice(2);
 
+export const isEventContainer = (dom: EventTarget): boolean =>
+  !!(dom as any)[listeningMarker];
+
 export const listenToAllEventSupported = (dom: EventTarget) => {
   if ((dom as any)[listeningMarker]) return;
   (dom as any)[listeningMarker] = true;
