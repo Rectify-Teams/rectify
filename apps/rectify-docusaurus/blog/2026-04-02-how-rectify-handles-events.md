@@ -1,6 +1,6 @@
 ---
 slug: how-rectify-handles-events
-title: "How Rectify Handles Events (and why it doesn't use addEventListener on your buttons)"
+title: "How Rectify Handles Events"
 authors:
   name: Rectify Teams
   title: Rectify Core Team
