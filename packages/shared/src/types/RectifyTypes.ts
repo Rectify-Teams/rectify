@@ -47,10 +47,21 @@ export type RectifyTypeJsx<P = any> =
   | LazyComponent<any>
   | null;
 
+export type RectifyPortal = {
+  $$typeof: symbol;
+  type: null;
+  key: RectifyKey;
+  props: {
+    children: RectifyNode;
+    containerInfo: Element;
+  };
+};
+
 export type RectifyNode =
   | RectifyText
   | RectifyIgnorable
   | RectifyElement
+  | RectifyPortal
   | Iterable<RectifyNode>;
 
 export type RectifyElement<P = any> = {

@@ -4,6 +4,7 @@ export {
   type RectifyClassComponent,
   type FC,
   type RectifyElement,
+  type RectifyPortal,
   type RectifyIgnorable,
   type RectifyJsx,
   type RectifyKey,

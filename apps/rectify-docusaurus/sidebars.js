@@ -49,6 +49,7 @@ const sidebars = {
         "learn/lazy-suspense",
         "learn/context",
         "learn/refs-and-dom",
+        "learn/portals",
         "learn/bailout",
       ],
     },
@@ -61,6 +62,7 @@ const sidebars = {
       collapsed: false,
       items: [
         "api/create-root",
+        "api/create-portal",
         "api/jsx",
         "api/fragment",
       ],

@@ -2,6 +2,7 @@ import {
   RECTIFY_ELEMENT_TYPE,
   RECTIFY_FRAGMENT_TYPE,
   RECTIFY_TEXT_TYPE,
+  RECTIFY_PORTAL_TYPE,
 } from "../constants";
 import { RectifyElement, RectifyIgnorable, RectifyNode } from "../types";
 import { isBool, isPlainObject, isTextNode } from "./common";
@@ -12,6 +13,7 @@ export const isValidRectifyElement = (v: unknown): v is RectifyElement => {
       RECTIFY_ELEMENT_TYPE,
       RECTIFY_FRAGMENT_TYPE,
       RECTIFY_TEXT_TYPE,
+      RECTIFY_PORTAL_TYPE,
     ];
     return (
       v.hasOwnProperty("$$typeof") &&

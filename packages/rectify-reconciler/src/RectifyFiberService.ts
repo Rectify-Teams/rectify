@@ -6,6 +6,7 @@ import {
   RECTIFY_ELEMENT_TYPE,
   RECTIFY_FRAGMENT_TYPE,
   RECTIFY_TEXT_TYPE,
+  RECTIFY_PORTAL_TYPE,
   RectifyElement,
   shallowEqual,
 } from "@rectify-dev/shared";
@@ -20,6 +21,7 @@ import {
   MemoComponent,
   LazyComponent,
   SuspenseComponent,
+  PortalComponent,
 } from "./RectifyFiberWorkTags";
 import { PlacementFlag } from "./RectifyFiberFlags";
 
@@ -40,6 +42,8 @@ const hasFlagOnFiber = (fiber: Fiber | null, flag: number): boolean => {
 
 const getFiberTagFromElement = (element: RectifyElement) => {
   switch (element.$$typeof) {
+    case RECTIFY_PORTAL_TYPE:
+      return PortalComponent;
     case RECTIFY_ELEMENT_TYPE:
       if (isFunction(element.type) && (element.type as any)?._context === element.type) {
         return ContextProvider;
@@ -99,6 +103,7 @@ const getParentDom = (fiber: Fiber): Node => {
   while (p) {
     if (p.workTag === HostComponent) return p.stateNode as Node;
     if (p.workTag === HostRoot) return p.stateNode as Node;
+    if (p.workTag === PortalComponent) return p.stateNode as Node;
     p = p.return;
   }
 

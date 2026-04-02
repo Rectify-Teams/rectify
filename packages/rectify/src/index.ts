@@ -1,5 +1,5 @@
-export type { FC, RectifyNode } from "@rectify-dev/shared";
-export { createRoot, SyntheticEvent } from "@rectify-dev/dom";
+export type { FC, RectifyNode, RectifyPortal } from "@rectify-dev/shared";
+export { createRoot, createPortal, SyntheticEvent } from "@rectify-dev/dom";
 export { jsx, Fragment } from "./RectifyJsx";
 export { memo } from "./RectifyMemo";
 export type { MemoComponent } from "./RectifyMemo";

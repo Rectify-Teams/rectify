@@ -9,6 +9,7 @@ import {
   LazyComponent,
   SuspenseComponent,
   ClassComponent,
+  PortalComponent,
 } from "./RectifyFiberWorkTags";
 import { withHooks, notifyContextConsumers } from "@rectify-dev/hook";
 import { createWorkInProgress } from "./RectifyFiber";
@@ -278,6 +279,12 @@ export const beginWork = (wip: Fiber): Fiber | null => {
       // Throwing a thenable signals the work loop to suspend the nearest
       // Suspense boundary and schedule a re-render when the promise resolves.
       throw lazy._promise;
+    }
+
+    case PortalComponent: {
+      wip.stateNode = wip.pendingProps.containerInfo;
+      reconcileChildren(wip, wip.pendingProps.children);
+      break;
     }
   }
 
