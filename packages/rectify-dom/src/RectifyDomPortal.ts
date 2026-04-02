@@ -1,4 +1,3 @@
-import { listenToAllEventSupported } from "@rectify-dev/dom-binding";
 import { RECTIFY_PORTAL_TYPE } from "@rectify-dev/shared";
 import type { RectifyKey, RectifyNode, RectifyPortal } from "@rectify-dev/shared";
 
@@ -7,7 +6,6 @@ export const createPortal = (
   container: Element,
   key: RectifyKey = null,
 ): RectifyPortal => {
-  listenToAllEventSupported(container);
   return {
     $$typeof: RECTIFY_PORTAL_TYPE,
     type: null,

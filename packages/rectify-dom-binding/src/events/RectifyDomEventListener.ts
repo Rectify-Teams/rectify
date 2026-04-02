@@ -11,7 +11,6 @@ import {
   setEventPriority,
   resetEventPriority,
 } from "./RectifyEventPriority";
-import { isEventContainer } from "./RectifyEvent";
 
 export type AnyNativeEvent = Event | KeyboardEvent | MouseEvent | TouchEvent;
 
@@ -35,17 +34,6 @@ const dispatchEvent = (
   const targetFiber = getFiberNodeCached(targetNode);
 
   if (!targetFiber) return;
-
-  // If a more-specific event container sits between the event target and
-  // targetContainer in the DOM, that container's own capture listener will
-  // handle the event. Skip here to avoid double-dispatch.
-  // This covers both createRoot containers (marked via markContainerAsRoot)
-  // and portal containers (registered via listenToAllEventSupported).
-  let domCursor: Node | null = targetNode.parentNode;
-  while (domCursor && domCursor !== targetContainer) {
-    if (isEventContainer(domCursor)) return;
-    domCursor = (domCursor as Node).parentNode;
-  }
 
   const syntheticEvent = new SyntheticEvent(nativeEvent);
 

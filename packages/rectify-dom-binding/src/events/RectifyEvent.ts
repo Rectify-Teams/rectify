@@ -11,6 +11,19 @@ export const isEventContainer = (dom: EventTarget): boolean =>
 
 export const listenToAllEventSupported = (dom: EventTarget) => {
   if ((dom as any)[listeningMarker]) return;
+
+  // If the container is already inside an existing Rectify event container,
+  // skip registration entirely — the ancestor's capture listener already
+  // covers all events originating from within this subtree.  Registering an
+  // additional set of capture listeners on an inner node would cause every
+  // event to be dispatched twice: once by the ancestor container and once by
+  // this one.
+  let ancestor = ((dom as Node | null)?.parentNode) ?? null;
+  while (ancestor) {
+    if ((ancestor as any)[listeningMarker]) return;
+    ancestor = (ancestor as Node).parentNode;
+  }
+
   (dom as any)[listeningMarker] = true;
 
   allNativeEvents.forEach((domEventName) =>

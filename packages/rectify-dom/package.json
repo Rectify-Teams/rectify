@@ -1,6 +1,6 @@
 {
   "name": "@rectify-dev/dom",
-  "version": "2.4.2",
+  "version": "2.4.4",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",

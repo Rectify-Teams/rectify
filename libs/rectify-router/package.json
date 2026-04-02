@@ -1,6 +1,6 @@
 {
   "name": "@rectify-dev/router",
-  "version": "2.4.2",
+  "version": "2.4.4",
   "description": "Client-side router for Rectify — inspired by React Router v6",
   "license": "MIT",
   "type": "module",

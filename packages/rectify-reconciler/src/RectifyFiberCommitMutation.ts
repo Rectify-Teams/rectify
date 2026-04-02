@@ -1,4 +1,4 @@
-import { applyPropsToDom, precacheFiberNode } from "@rectify-dev/dom-binding";
+import { applyPropsToDom, listenToAllEventSupported, precacheFiberNode } from "@rectify-dev/dom-binding";
 import { Fiber } from "@rectify-dev/shared";
 import { MoveFlag, PlacementFlag, RefFlag, UpdateFlag } from "./RectifyFiberFlags";
 import {
@@ -6,7 +6,7 @@ import {
   hasFlagOnFiber,
   removeFlagFromFiber,
 } from "./RectifyFiberService";
-import { HostComponent, HostText } from "./RectifyFiberWorkTags";
+import { HostComponent, HostText, PortalComponent } from "./RectifyFiberWorkTags";
 import { attachRef, detachRef } from "./RectifyFiberCommitRef";
 import { placeNode } from "./RectifyFiberCommitPlacement";
 
@@ -92,6 +92,15 @@ export const commitMutation = (fiber: Fiber): void => {
       break;
     case HostText:
       commitMutationHostText(fiber);
+      break;
+    case PortalComponent:
+      // Register delegated event listeners on the portal container the first
+      // time it is committed.  Doing this here (commit phase) rather than in
+      // createPortal (render phase) prevents mid-dispatch listener registration:
+      // a sync re-render triggered by a click would otherwise attach listeners
+      // to the container while the native capture phase is still propagating,
+      // causing the same event to fire a second time through the new listener.
+      listenToAllEventSupported(fiber.stateNode as Element);
       break;
   }
 };
