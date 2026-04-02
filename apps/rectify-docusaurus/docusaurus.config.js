@@ -27,7 +27,7 @@ const config = {
       {
         hashed: true,
         docsRouteBasePath: "/",
-        indexBlog: false,
+        indexBlog: true,
         language: "en",
       },
     ],
@@ -44,7 +44,12 @@ const config = {
           editUrl:
             "https://github.com/Rectify-Teams/rectify/tree/main/apps/rectify-docusaurus/",
         },
-        blog: false,
+        blog: {
+          showReadingTime: true,
+          blogTitle: "Rectify Blog",
+          blogDescription: "Release announcements and updates from the Rectify team",
+          postsPerPage: "ALL",
+        },
         theme: {
           customCss: "./src/css/custom.css",
         },
@@ -86,6 +91,11 @@ const config = {
             label: "Router",
           },
           {
+            to: "/blog",
+            label: "Blog",
+            position: "left",
+          },
+          {
             href: "https://github.com/Rectify-Teams/rectify",
             label: "GitHub",
             position: "right",
@@ -101,6 +111,7 @@ const config = {
               { label: "Introduction", to: "/" },
               { label: "Hooks", to: "/api/hooks/use-state" },
               { label: "Router", to: "/router/browser-router" },
+              { label: "Blog", to: "/blog" },
             ],
           },
           {
