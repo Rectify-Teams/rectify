@@ -8,6 +8,7 @@ import {
 } from "@rectify-dev/shared";
 import { addFlagToFiber, hasPropsChanged } from "./RectifyFiberService";
 import {
+  ChildDeletionFlag,
   DeletionFlag,
   MoveFlag,
   PlacementFlag,
@@ -265,6 +266,13 @@ export const reconcileChildren = (wip: Fiber, children: RectifyNode): void => {
     .map(createElementFromRectifyNode)
     .filter(isValidRectifyElement);
 
+  // Always reset wip.child before reconciling. createWorkInProgress copies
+  // current.child as a starting value, but if the new child list is shorter
+  // (or empty) appendFiber may never overwrite it, leaving a stale pointer
+  // that causes the work loop to follow old return chains and exit the WIP
+  // subtree without properly bubbling flags.
+  wip.child = null;
+
   const state: ReconcileState = {
     wip,
     newElements,
@@ -290,5 +298,8 @@ export const reconcileChildren = (wip: Fiber, children: RectifyNode): void => {
   }
 
   if (state.prev) state.prev.sibling = null; // terminate the new sibling chain
-  if (state.deletions.length) wip.deletions = state.deletions;
+  if (state.deletions.length) {
+    wip.deletions = state.deletions;
+    addFlagToFiber(wip, ChildDeletionFlag);
+  }
 };

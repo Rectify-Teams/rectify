@@ -4,6 +4,7 @@ import { Home } from "./pages/Home";
 import { About } from "./pages/About";
 import { UserList } from "./pages/UserList";
 import { UserDetail } from "./pages/UserDetail";
+import { Benchmark } from "./pages/Benchmark";
 import { NotFound } from "./pages/NotFound";
 
 const App = () => (
@@ -14,6 +15,7 @@ const App = () => (
         <Route path="about" element={<About />} />
         <Route path="users" element={<UserList />} />
         <Route path="users/:id" element={<UserDetail />} />
+        <Route path="benchmark" element={<Benchmark />} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>

@@ -28,6 +28,9 @@ export function Layout() {
         <NavLink to="/users" end={false} style={linkStyle} activeClassName="nav-active">
           Users
         </NavLink>
+        <NavLink to="/benchmark" style={linkStyle} activeClassName="nav-active">
+          Benchmark
+        </NavLink>
       </nav>
       <main style={{ padding: "2rem 1.5rem" }}>
         <Outlet />

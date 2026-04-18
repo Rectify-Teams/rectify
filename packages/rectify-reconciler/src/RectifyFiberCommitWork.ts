@@ -1,10 +1,10 @@
 import { Fiber } from "@rectify-dev/shared";
-import { NoFlags, MoveFlag, PlacementFlag, RefFlag, UpdateFlag } from "./RectifyFiberFlags";
+import { NoFlags, MoveFlag, PlacementFlag, RefFlag, UpdateFlag, ChildDeletionFlag } from "./RectifyFiberFlags";
 import { commitMutation } from "./RectifyFiberCommitMutation";
 import { removeHostTree } from "./RectifyFiberCommitRemoval";
 import { ClassComponent } from "./RectifyFiberWorkTags";
 
-const MutationMask = PlacementFlag | UpdateFlag | MoveFlag | RefFlag;
+const MutationMask = PlacementFlag | UpdateFlag | MoveFlag | RefFlag | ChildDeletionFlag;
 
 // ---------------------------------------------------------------------------
 // commitWork
