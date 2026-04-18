@@ -2,7 +2,9 @@
 
 [![npm](https://img.shields.io/npm/v/@rectify-dev/router)](https://www.npmjs.com/package/@rectify-dev/router) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](../../LICENSE)
 
-Client-side router for Rectify — inspired by React Router v6. Provides `BrowserRouter`, `HashRouter`, nested routes, `Outlet`, `Link`, `NavLink`, and a full set of navigation hooks.
+A first-class client-side router for [Rectify](https://rectify-teams.github.io/rectify) — BrowserRouter, HashRouter, nested routes, outlets, typed hooks, and full TypeScript support.
+
+📖 **Full docs:** [rectify-teams.github.io/rectify/router](https://rectify-teams.github.io/rectify/router)
 
 ---
 
@@ -23,9 +25,9 @@ yarn add @rectify-dev/core @rectify-dev/router
 
 ## Setup
 
-### Vite
+**`vite.config.ts`**
 
-```ts title="vite.config.ts"
+```ts
 import { defineConfig } from "vite";
 import rectify from "@rectify-dev/vite-plugin";
 
@@ -34,9 +36,9 @@ export default defineConfig({
 });
 ```
 
-### TypeScript
+**`tsconfig.json`**
 
-```json title="tsconfig.json"
+```json
 {
   "compilerOptions": {
     "jsx": "react-jsx",
@@ -47,9 +49,10 @@ export default defineConfig({
 
 ---
 
-## Quick start
+## Quick Start
 
-```tsx title="src/main.tsx"
+```tsx
+// src/main.tsx
 import { createRoot } from "@rectify-dev/core";
 import { BrowserRouter } from "@rectify-dev/router";
 import App from "./App";
@@ -61,7 +64,8 @@ createRoot(document.getElementById("root")!).render(
 );
 ```
 
-```tsx title="src/App.tsx"
+```tsx
+// src/App.tsx
 import { Routes, Route, Link } from "@rectify-dev/router";
 import Home from "./pages/Home";
 import About from "./pages/About";
@@ -131,14 +135,14 @@ type HashRouterProps = {
 
 ### `Routes` and `Route`
 
-`<Routes>` renders the first `<Route>` whose `path` matches the current URL. `<Route>` itself renders `null` — it is a data carrier read by `<Routes>`.
+`<Routes>` renders the first `<Route>` whose `path` matches the current URL.
 
 ```ts
 type RouteProps = {
-  path?:     string;    // URL pattern, e.g. "/users/:id"
-  index?:    boolean;   // matches the parent path exactly
+  path?:     string;       // URL pattern, e.g. "/users/:id"
+  index?:    boolean;      // matches the parent path exactly
   element?:  RectifyNode;
-  children?: RectifyNode; // nested <Route>s
+  children?: RectifyNode;  // nested <Route>s
 };
 ```
 
@@ -217,7 +221,7 @@ Like `Link` but applies `activeClassName` when the current path matches `to`.
 ```ts
 type NavLinkProps = LinkProps & {
   activeClassName?: string; // default "active"
-  end?:             boolean; // default true
+  end?:             boolean; // default true — exact match
 };
 ```
 
@@ -263,7 +267,7 @@ Returns the `navigate` function for programmatic navigation.
 ```ts
 type NavigateFunction = {
   (to: string, options?: NavigateOptions): void;
-  (delta: number): void;  // go(-1) = back, go(1) = forward
+  (delta: number): void; // go(-1) = back, go(1) = forward
 };
 
 type NavigateOptions = {
@@ -275,14 +279,9 @@ type NavigateOptions = {
 ```tsx
 const navigate = useNavigate();
 
-// push
-navigate("/dashboard");
-
-// replace
-navigate("/login", { replace: true });
-
-// go back
-navigate(-1);
+navigate("/dashboard");                      // push
+navigate("/login", { replace: true });       // replace
+navigate(-1);                                // go back
 ```
 
 ---
@@ -347,10 +346,9 @@ Returns `[URLSearchParams, setter]`. Calling the setter navigates to the current
 ```tsx
 const [params, setParams] = useSearchParams();
 
-// read
 console.log(params.get("q"));
 
-// write — navigates to ?q=hello&page=1
+// navigates to ?q=hello&page=1
 setParams({ q: "hello", page: "1" });
 ```
 
@@ -358,26 +356,28 @@ setParams({ q: "hello", page: "1" });
 
 ### `useHref`
 
-Resolves a `to` path to a full `href` string respecting the router's `basename` and the current location.
+Resolves a `to` path to a full `href` string respecting the router's `basename`.
 
 ```tsx
-const href = useHref("/about"); // "/about" with BrowserRouter, "/#/about" with HashRouter
+const href = useHref("/about");
+// BrowserRouter → "/about"
+// HashRouter    → "/#/about"
 ```
 
 ---
 
-## URL patterns
+## URL Patterns
 
 | Pattern | Matches |
 |---------|---------|
 | `/about` | Exactly `/about` |
 | `/users/:id` | `/users/42`, `/users/alice` |
 | `/files/*` | `/files/`, `/files/a/b/c` |
-| `*` | Everything (catch-all) |
+| `*` | Everything (catch-all / 404) |
 
 ---
 
-## Nested routes example
+## Nested Routes Example
 
 ```tsx
 function App() {

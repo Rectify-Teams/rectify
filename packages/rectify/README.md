@@ -2,7 +2,13 @@
 
 [![npm](https://img.shields.io/npm/v/@rectify-dev/core)](https://www.npmjs.com/package/@rectify-dev/core) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](../../LICENSE)
 
-A lightweight React-like UI library built from scratch — fiber reconciler, concurrent rendering, class components, a complete hooks API, lazy/Suspense, and context. All with zero React dependencies and **~10 KB gzipped**.
+A lightweight React-compatible UI library built from scratch — fiber reconciler, concurrent rendering, class components, a complete hooks API, lazy/Suspense, and context. All with **zero React dependencies** and **~10 KB gzipped**.
+
+📖 **Full docs:** [rectify-teams.github.io/rectify](https://rectify-teams.github.io/rectify)
+
+---
+
+## Features
 
 | Feature | Status |
 |---------|--------|
@@ -16,6 +22,7 @@ A lightweight React-like UI library built from scratch — fiber reconciler, con
 | `useId` | ✅ |
 | `memo()` with custom comparator | ✅ |
 | `lazy()` + `<Suspense>` | ✅ |
+| Portals | ✅ |
 | SVG elements | ✅ |
 | Client-side router | [`@rectify-dev/router`](../../libs/rectify-router) |
 
@@ -36,12 +43,8 @@ npm create @rectify-dev/rectify-app@latest my-app
 yarn create @rectify-dev/rectify-app my-app
 ```
 
-Then:
-
 ```bash
-cd my-app
-pnpm install
-pnpm dev
+cd my-app && pnpm install && pnpm dev
 ```
 
 This scaffolds a Vite + TypeScript project pre-configured with the Rectify JSX runtime, `@rectify-dev/vite-plugin`, and a ready-to-edit `src/App.tsx`.
@@ -56,39 +59,29 @@ pnpm add @rectify-dev/core
 npm install @rectify-dev/core
 ```
 
-Configure your bundler to use the Rectify JSX runtime:
+**`vite.config.ts`**
+
+```ts
+import { defineConfig } from "vite";
+import rectify from "@rectify-dev/vite-plugin";
+
+export default defineConfig({
+  plugins: [rectify()],
+});
+```
+
+**`tsconfig.json`**
 
 ```json
-// tsconfig.json
 {
   "compilerOptions": {
     "jsx": "react-jsx",
-    "jsxImportSource": "@rectify-dev/core"
+    "jsxImportSource": "@rectify-dev/core",
+    "strict": true,
+    "moduleResolution": "bundler"
   }
 }
 ```
-
----
-
-## Table of Contents
-
-- [Quick Start](#quick-start)
-- [Rendering](#rendering)
-- [Hooks](#hooks)
-  - [useState](#usestate)
-  - [useReducer](#usereducer)
-  - [useEffect](#useeffect)
-  - [useLayoutEffect](#uselayouteffect)
-  - [useRef](#useref)
-  - [useMemo](#usememo)
-  - [useCallback](#usecallback)
-  - [useId](#useid)
-  - [useContext / createContext](#usecontext--createcontext)
-- [Class Components](#class-components)
-- [memo](#memo)
-- [lazy + Suspense](#lazy--suspense)
-- [Fragment](#fragment)
-- [TypeScript](#typescript)
 
 ---
 
@@ -170,7 +163,7 @@ const Timer = () => {
 
 ### useLayoutEffect
 
-Same signature as `useEffect` but fires synchronously after DOM mutations, before the browser paints. Use for measuring layout or imperatively updating the DOM.
+Fires synchronously after DOM mutations, before the browser paints. Use for measuring layout or imperatively updating the DOM.
 
 ```tsx
 import { useLayoutEffect, useRef } from "@rectify-dev/core";
@@ -188,7 +181,7 @@ const Tooltip = () => {
 
 ### useRef
 
-Returns a stable mutable container whose `.current` value persists across renders.
+Returns a stable mutable container. Updating `.current` does **not** trigger a re-render.
 
 ```tsx
 import { useRef } from "@rectify-dev/core";
@@ -199,10 +192,13 @@ const Input = () => {
 };
 ```
 
-Callback refs are also supported:
+Callback refs (React 19 style with cleanup return):
 
 ```tsx
-<div ref={(node) => { /* attach */ return () => { /* cleanup */ }; }} />
+<div ref={(node) => {
+  // attach
+  return () => { /* cleanup */ };
+}} />
 ```
 
 ---
@@ -224,7 +220,7 @@ const List = ({ items }: { items: number[] }) => {
 
 ### useCallback
 
-Memoises a function reference; useful for stable event handler props passed to `memo`-wrapped children.
+Memoises a function reference.
 
 ```tsx
 import { useCallback } from "@rectify-dev/core";
@@ -239,7 +235,7 @@ const Parent = () => {
 
 ### useId
 
-Returns a stable, globally unique string ID that never changes for the lifetime of the component. Ideal for linking form labels to inputs.
+Returns a stable, globally unique string ID — ideal for linking form labels to inputs.
 
 ```tsx
 import { useId } from "@rectify-dev/core";
@@ -252,16 +248,6 @@ const Field = ({ label }: { label: string }) => {
       <input id={id} />
     </>
   );
-};
-```
-
-Multiple calls in the same component each return a distinct ID:
-
-```tsx
-const Form = () => {
-  const nameId = useId();  // ":r0:"
-  const emailId = useId(); // ":r1:"
-  // ...
 };
 ```
 
@@ -303,23 +289,15 @@ interface State { open: boolean }
 class Accordion extends Component<Props, State> {
   state = { open: false };
 
-  componentDidMount() {
-    console.log("mounted");
-  }
+  componentDidMount() { console.log("mounted"); }
 
   componentDidUpdate(prevProps: Props, prevState: State) {
-    // prevProps and prevState are correct snapshots from before the render
-    if (prevState.open !== this.state.open) {
-      console.log("toggled", this.state.open);
-    }
+    if (prevState.open !== this.state.open) console.log("toggled");
   }
 
-  componentWillUnmount() {
-    console.log("unmounted");
-  }
+  componentWillUnmount() { console.log("unmounted"); }
 
   shouldComponentUpdate(nextProps: Props, nextState: State) {
-    // return false to skip re-render
     return nextState.open !== this.state.open || nextProps.title !== this.props.title;
   }
 
@@ -336,7 +314,7 @@ class Accordion extends Component<Props, State> {
 }
 ```
 
-`setState` accepts a partial state object or an updater function:
+`setState` accepts a partial object or an updater function:
 
 ```tsx
 this.setState({ count: 42 });
@@ -347,7 +325,7 @@ this.setState(prev => ({ count: prev.count + 1 }));
 
 ## memo
 
-Prevents re-renders when props are shallowly equal.
+Prevents re-renders when props are shallowly equal. All function components already bail out automatically — use `memo` only when you need a **custom comparator**.
 
 ```tsx
 import { memo } from "@rectify-dev/core";
@@ -355,9 +333,9 @@ import { memo } from "@rectify-dev/core";
 const Item = memo(({ name }: { name: string }) => <li>{name}</li>);
 
 // Custom comparator
-const Item = memo(
-  ({ value }: { value: number }) => <span>{value}</span>,
-  (prev, next) => prev.value === next.value,
+const Chart = memo(
+  ({ data }: { data: number[] }) => <canvas />,
+  (prev, next) => prev.data.length === next.data.length,
 );
 ```
 
@@ -373,13 +351,11 @@ import { lazy, Suspense } from "@rectify-dev/core";
 const HeavyChart = lazy(() => import("./HeavyChart"));
 
 const Dashboard = () => (
-  <Suspense fallback={<div>Loading chart...</div>}>
+  <Suspense fallback={<div>Loading...</div>}>
     <HeavyChart data={data} />
   </Suspense>
 );
 ```
-
-Multiple lazy components under one `Suspense` boundary are all handled — the fallback shows until every child resolves.
 
 ---
 
@@ -397,7 +373,7 @@ const Rows = () => (
   </Fragment>
 );
 
-// Shorthand (requires Babel / TSX support)
+// Shorthand
 const Rows = () => (
   <>
     <tr><td>A</td></tr>
@@ -410,7 +386,7 @@ const Rows = () => (
 
 ## TypeScript
 
-All JSX element attributes, event handlers, CSS properties, and ARIA attributes are fully typed. Import convenience types directly from the package:
+All JSX element attributes, event handlers, CSS properties, and ARIA attributes are fully typed:
 
 ```tsx
 import type {
@@ -426,13 +402,14 @@ import type {
   Dispatch,
   SyntheticMouseEvent,
   SyntheticKeyboardEvent,
-  // ... and all other synthetic event types
+  SyntheticChangeEvent,
+  SyntheticFocusEvent,
+  SyntheticInputEvent,
+  SyntheticSubmitEvent,
 } from "@rectify-dev/core";
 ```
 
-### `key` prop
-
-The `key` prop is accepted on every element (host and component) without appearing in the component's own props type:
+The `key` prop is accepted on every element without appearing in the component's own props type:
 
 ```tsx
 items.map(item => <Row key={item.id} data={item} />);
