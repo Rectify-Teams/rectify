@@ -51,6 +51,7 @@ const sidebars = {
         "learn/refs-and-dom",
         "learn/portals",
         "learn/bailout",
+        "learn/benchmark",
       ],
     },
   ],

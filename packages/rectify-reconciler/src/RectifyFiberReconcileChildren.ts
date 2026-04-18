@@ -252,12 +252,25 @@ const reconcileKeyed = (
 // ---------------------------------------------------------------------------
 
 /**
- * Normalise the raw `children` value into a flat array of `RectifyNode` items
- * ready to be mapped through `createElementFromRectifyNode`.
+ * Recursively flatten `children` into a flat array of `RectifyNode` items.
+ * Nested arrays arise naturally from `.map()` calls in JSX:
+ *   <div>{items.map(i => <Row />)}</div>
+ * produces children = [Array<element>, ...] which must be flattened before
+ * passing each leaf to createElementFromRectifyNode.
  */
 const toChildArray = (children: RectifyNode): RectifyNode[] => {
   if (children == null || typeof children === "boolean") return [];
-  if (isArray(children)) return children as RectifyNode[];
+  if (isArray(children)) {
+    const result: RectifyNode[] = [];
+    for (const child of children as RectifyNode[]) {
+      if (isArray(child)) {
+        result.push(...toChildArray(child as RectifyNode));
+      } else {
+        result.push(child);
+      }
+    }
+    return result;
+  }
   return [children as RectifyNode];
 };
 

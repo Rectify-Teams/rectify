@@ -91,6 +91,11 @@ const config = {
             label: "Router",
           },
           {
+            to: "/learn/benchmark",
+            label: "Benchmark",
+            position: "left",
+          },
+          {
             to: "/blog",
             label: "Blog",
             position: "left",

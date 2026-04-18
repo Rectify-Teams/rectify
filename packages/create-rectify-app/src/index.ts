@@ -44,7 +44,7 @@ function tplPackageJson(name: string): string {
           preview: "vite preview",
         },
         devDependencies: {
-          "@rectify-dev/core": "^2.4.5",
+          "@rectify-dev/core": "^2.5.0",
           "@rectify-dev/vite-plugin": "latest",
           typescript: "~5.9.3",
           vite: "latest",

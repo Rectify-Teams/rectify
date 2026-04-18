@@ -6,6 +6,9 @@ on:
       - main
     paths:
       - "apps/rectify-docusaurus/**"
+      - "apps/rectify-vs-react/**"
+      - "packages/**"
+      - "libs/**"
       - ".github/workflows/deploy-docs.yml"
   workflow_dispatch:
 
@@ -41,7 +44,19 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
-      - name: Build
+      - name: Build workspace packages
+        run: pnpm -r --filter='!rectify-docusaurus' --filter='!rectify-vs-react' --filter='!rectify-example' --filter='!rectify-benchmark' build
+
+      - name: Build benchmark app
+        working-directory: apps/rectify-vs-react
+        env:
+          VITE_BASE: /rectify/perf-benchmark/
+        run: pnpm build
+
+      - name: Copy benchmark into Docusaurus static folder
+        run: cp -r apps/rectify-vs-react/dist apps/rectify-docusaurus/static/perf-benchmark
+
+      - name: Build Docusaurus
         working-directory: apps/rectify-docusaurus
         run: pnpm build
 
