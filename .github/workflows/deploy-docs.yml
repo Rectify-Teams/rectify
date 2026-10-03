@@ -1,11 +1,11 @@
-name: Deploy Docusaurus to GitHub Pages
+name: Deploy VitePress docs to GitHub Pages
 
 on:
   push:
     branches:
       - main
     paths:
-      - "apps/rectify-docusaurus/**"
+      - "apps/rectify-docs/**"
       - "apps/rectify-vs-react/**"
       - "packages/**"
       - "libs/**"
@@ -23,7 +23,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build Docusaurus
+    name: Build VitePress docs
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -45,7 +45,7 @@ jobs:
         run: pnpm install --no-frozen-lockfile
 
       - name: Build workspace packages
-        run: pnpm -r --filter='!rectify-docusaurus' --filter='!rectify-vs-react' --filter='!rectify-example' --filter='!rectify-benchmark' build
+        run: pnpm -r --filter='!rectify-docs' --filter='!rectify-vs-react' --filter='!rectify-example' --filter='!rectify-benchmark' build
 
       - name: Build benchmark app
         working-directory: apps/rectify-vs-react
@@ -53,17 +53,17 @@ jobs:
           VITE_BASE: /rectify/perf-benchmark/
         run: pnpm build
 
-      - name: Copy benchmark into Docusaurus static folder
-        run: cp -r apps/rectify-vs-react/dist apps/rectify-docusaurus/static/perf-benchmark
+      - name: Copy benchmark into VitePress public folder
+        run: cp -r apps/rectify-vs-react/dist apps/rectify-docs/docs/public/perf-benchmark
 
-      - name: Build Docusaurus
-        working-directory: apps/rectify-docusaurus
+      - name: Build VitePress docs
+        working-directory: apps/rectify-docs
         run: pnpm build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: apps/rectify-docusaurus/build
+          path: apps/rectify-docs/docs/.vitepress/dist
 
   deploy:
     name: Deploy to GitHub Pages

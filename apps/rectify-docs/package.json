@@ -1,0 +1,21 @@
+{
+  "name": "rectify-docs",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vitepress dev docs",
+    "build": "vitepress build docs",
+    "preview": "vitepress preview docs"
+  },
+  "devDependencies": {
+    "vitepress": "^1.6.4",
+    "vue": "^3.5.0"
+  },
+  "engines": {
+    "node": ">=18.0"
+  },
+  "dependencies": {
+    "@wcvm/sdk": "^0.1.1"
+  }
+}
