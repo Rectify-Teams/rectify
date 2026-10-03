@@ -144,7 +144,12 @@ export default defineConfig({
   lastUpdated: true,
   appearance: "dark",
 
-  head: [["link", { rel: "icon", href: "/rectify/img/logo.svg" }]],
+  head: [
+    ["link", { rel: "icon", href: "/rectify/img/logo.svg" }],
+    // GitHub Pages cannot send COOP/COEP headers, which the playground needs. This service worker
+    // adds them (and reloads once on the first visit). It does nothing if the page is already isolated.
+    ["script", { src: "/rectify/coi-serviceworker.js" }],
+  ],
 
   // The benchmark app is copied into public/ at deploy time, so its URL is
   // not resolvable while VitePress checks links.
