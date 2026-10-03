@@ -1,7 +1,7 @@
 import { RectifyNode } from "@rectify-dev/shared";
 import { FiberRoot } from "./RectifyFiberTypes";
 import { createHostRootFiber, createWorkInProgress } from "./RectifyFiber";
-import { setScheduledFiberRoot } from "./RectifyFiberInstance";
+import { registerFiberRoot, unregisterFiberRoot } from "./RectifyFiberInstance";
 import { markContainerAsRoot } from "@rectify-dev/dom-binding";
 import { workLoop } from "./RectifyFiberWorkLoop";
 import { commitWork } from "./RectifyFiberCommitWork";
@@ -23,7 +23,7 @@ export const updateContainer = (
   fiberRoot: FiberRoot,
 ): void => {
   fiberRoot.children = children;
-  setScheduledFiberRoot(fiberRoot);
+  registerFiberRoot(fiberRoot);
 
   const wipRoot = createWorkInProgress(fiberRoot.root, { children });
   setCurrentRenderingLanes(SyncLane);
@@ -31,10 +31,14 @@ export const updateContainer = (
   commitWork(wipRoot);
   fiberRoot.root = wipRoot;
   markContainerAsRoot(wipRoot, fiberRoot.containerDom);
-  setScheduledFiberRoot(fiberRoot);
   // Flush layout effects synchronously, draining any setState they trigger
   // before the browser gets a chance to paint.
-  flushLayoutPhase(fiberRoot);
+  flushLayoutPhase();
   // Passive effects (useEffect) are deferred so the browser can paint first.
   schedulePassiveEffects();
+};
+
+/** Stop scheduling work for `fiberRoot` (called when its root is unmounted). */
+export const removeContainer = (fiberRoot: FiberRoot): void => {
+  unregisterFiberRoot(fiberRoot);
 };

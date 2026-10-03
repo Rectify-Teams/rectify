@@ -3,7 +3,7 @@ import {
   markContainerAsRoot,
   unmarkContainerAsRoot,
 } from "@rectify-dev/dom-binding";
-import { createContainer, updateContainer } from "@rectify-dev/reconciler";
+import { createContainer, updateContainer, removeContainer } from "@rectify-dev/reconciler";
 import { RectifyNode } from "@rectify-dev/shared";
 
 type RectifyDomRoot = {
@@ -20,6 +20,7 @@ export const createRoot = (container: Element): RectifyDomRoot => {
       updateContainer(node, hostRoot);
     },
     unmount: () => {
+      removeContainer(hostRoot);
       unmarkContainerAsRoot(container);
     },
   };

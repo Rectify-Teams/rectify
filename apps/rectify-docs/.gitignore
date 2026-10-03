@@ -1,0 +1,5 @@
+node_modules
+dist
+docs/.vitepress/cache
+docs/.vitepress/dist
+docs/public/perf-benchmark

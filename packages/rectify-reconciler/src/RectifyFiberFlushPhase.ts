@@ -1,5 +1,4 @@
 import { Fiber } from "@rectify-dev/shared";
-import { FiberRoot } from "./RectifyFiberTypes";
 import { workLoopOnFiberLanes } from "./RectifyFiberWorkLoop";
 import { commitWork } from "./RectifyFiberCommitWork";
 import { markContainerAsRoot } from "@rectify-dev/dom-binding";
@@ -17,6 +16,7 @@ import {
 import { setCurrentRenderingLanes } from "./RectifyFiberRenderPriority";
 import { clearResumeCursor } from "./RectifyFiberScheduler";
 import { SyncLane } from "./RectifyFiberLanes";
+import { getFiberRoots } from "./RectifyFiberInstance";
 
 // When true, setState calls inside useLayoutEffect must NOT schedule async
 // tasks – they will be drained synchronously by flushLayoutPhase instead.
@@ -50,7 +50,7 @@ export const schedulePassiveEffects = (): void => {
  * behavior where setState inside useLayoutEffect causes a synchronous
  * re-render that the browser never sees as an intermediate frame.
  */
-export const flushLayoutPhase = (fiberRoot: FiberRoot): void => {
+export const flushLayoutPhase = (): void => {
   while (true) {
     setIsFlushingLayoutEffects(true);
     flushLayoutEffectCleanups();
@@ -61,13 +61,16 @@ export const flushLayoutPhase = (fiberRoot: FiberRoot): void => {
     if (!hasUpdate()) break;
 
     // Drain the updates synchronously (they were enqueued with SyncLane).
+    // The updates may belong to any mounted root, so re-render each of them.
     flushPendingUpdates();
     setCurrentRenderingLanes(SyncLane);
-    const completed = workLoopOnFiberLanes(fiberRoot.root, SyncLane);
-    if (!completed) break; // shouldn't happen for sync lanes
-    clearResumeCursor();
-    commitWork(fiberRoot.root);
-    markContainerAsRoot(fiberRoot.root, fiberRoot.containerDom);
+    for (const fiberRoot of getFiberRoots()) {
+      const completed = workLoopOnFiberLanes(fiberRoot.root, SyncLane);
+      if (!completed) return; // shouldn't happen for sync lanes
+      clearResumeCursor();
+      commitWork(fiberRoot.root);
+      markContainerAsRoot(fiberRoot.root, fiberRoot.containerDom);
+    }
     // Loop back to flush any layout effects produced by this new render.
   }
 };
